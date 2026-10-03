@@ -7,7 +7,10 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "extra": {
-      "APP_NAME": "Calculadora do Feirante"
+      "APP_NAME": "Calculadora do Feirante",
+      "eas": {
+        "projectId": "d05bb439-9f8d-46b2-832c-aa8c39253b7f"
+      }
     },
     "ios": {
       "supportsTablet": true
@@ -19,7 +22,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.arthurfrc.calculadoradofeirante"
     },
     "web": {
       "favicon": "./assets/favicon.png"

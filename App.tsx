@@ -14,9 +14,8 @@ import * as SplashScreen from 'expo-splash-screen';
 // import * as Application from 'expo-application';
 
 import { AppDialog, useAppDialog } from "./src/components/AppDialog";
-import { ProductAutocomplete } from "./src/components/ProductAutocomplete";
-import { WeightItem, Conference, Product, PriceType } from "./src/types";
-import { formatWeight, formatCurrency, formatPriceInput, parsePriceInput, formatWeightInput, parseWeightInput, formatDate, generateConferenceName, getDisplayName } from "./src/utils/formatters";
+import { Conference, Product } from "./src/types";
+import { formatWeight, formatCurrency, formatDate, generateConferenceName, getDisplayName, formatWeightInput, parseWeightInput } from "./src/utils/formatters";
 import { Toast } from "./src/components/Toast";
 import { useSlots } from "./src/hooks/useSlots";
 import { useProducts } from "./src/hooks/useProducts";
@@ -24,8 +23,8 @@ import { SaveModal } from "./src/modals/SaveModal";
 import { LoadModal } from "./src/modals/LoadModal";
 import { ShareModal } from "./src/modals/ShareModal";
 import { PaywallModal } from "./src/modals/PaywallModal";
-import { QuickProductModal } from "./src/modals/QuickProductModal";
 import { ProductsModal } from "./src/modals/ProductsModal";
+import { FinalizeModal } from "./src/modals/FinalizeModal";
 import { shareViaWhatsApp } from "./src/services/whatsappService";
 import { generateAndSharePDF } from "./src/services/printService";
 // import { usePurchases } from "./src/hooks/usePurchases";
@@ -40,20 +39,17 @@ const MAX_ITENS_PREMIUM = parseInt(process.env.EXPO_PUBLIC_MAX_ITENS_PREMIUM ?? 
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
 export default function App() {
-  const [items, setItems] = useState<WeightItem[]>([]);
-  const [productSearch, setProductSearch] = useState<string>("");
-  const [qtyInput, setQtyInput] = useState<string>("");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
+  const [showFinalizeModal, setShowFinalizeModal] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const afterSaveRef = useRef<(() => void) | null>(null);
-  const lastAddedIdRef = useRef<string | null>(null);
 
   const [showMenu, setShowMenu] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [customTitle, setCustomTitle] = useState<string>("");
-  const [showQuickProductModal, setShowQuickProductModal] = useState(false);
   const [showProductsModal, setShowProductsModal] = useState(false);
 
   const [showLoadModal, setShowLoadModal] = useState(false);
@@ -77,13 +73,22 @@ export default function App() {
 
   // ── Computed ──────────────────────────────────────────────────────────────
 
-  const totalQty = items.reduce((sum, i) => sum + i.qty, 0);
-  const totalWeight = items.reduce((sum, i) => sum + i.totalWeight, 0);
-  const totalValue = items.reduce((sum, i) => sum + i.subtotal, 0);
+  const activeProducts = products.filter(p => quantities[p.id] && quantities[p.id] > 0);
+  const totalQty = activeProducts.reduce((sum, p) => sum + (quantities[p.id] || 0), 0);
+  const totalWeight = activeProducts.reduce((sum, p) => {
+    const qty = quantities[p.id] || 0;
+    return sum + (p.priceType === 'kg' ? qty : 0);
+  }, 0);
+  const totalValue = activeProducts.reduce((sum, p) => {
+    const qty = quantities[p.id] || 0;
+    return sum + (qty * p.price);
+  }, 0);
 
   const MAX_SLOTS_FREE = parseInt(process.env.EXPO_PUBLIC_MAX_SLOTS_FREE ?? "20");
   const MAX_SLOTS_PREMIUM = parseInt(process.env.EXPO_PUBLIC_MAX_SLOTS_PREMIUM ?? "999");
   const maxSlots = isPremium ? MAX_SLOTS_PREMIUM : MAX_SLOTS_FREE;
+
+  const MAX_ITENS_FREE = parseInt(process.env.EXPO_PUBLIC_MAX_ITENS_FREE ?? "50");
 
   // ── Toast ─────────────────────────────────────────────────────────────────
 
@@ -99,23 +104,7 @@ export default function App() {
   const { slots, setSlots, currentSlot, readSlots, setCurrentSlot, writeSlots } = useSlots(maxSlots);
   useEffect(() => { readSlots().then(setSlots); }, []);
 
-  const sortedItems = [...items].sort((a, b) => a.productName.localeCompare(b.productName));
-
-  useEffect(() => {
-    if (lastAddedIdRef.current === null || items.length === 0) return;
-    const id = lastAddedIdRef.current;
-    lastAddedIdRef.current = null;
-
-    setTimeout(() => {
-      const idx = sortedItems.findIndex(i => i.id === id);
-      if (idx !== -1) {
-        scrollViewRef.current?.scrollTo({
-          y: HEADER_HEIGHT + idx * ROW_HEIGHT,
-          animated: true,
-        });
-      }
-    }, 80);
-  }, [items]);
+  const sortedProducts = [...products].sort((a, b) => a.name.localeCompare(b.name));
 
   useEffect(() => {
     setTimeout(async () => {
@@ -148,7 +137,7 @@ export default function App() {
       readSlots().then(setSlots);
       setShowSaveModal(true);
     }
-  }, [currentSlot, slots]);
+  }, [currentSlot, slots, quantities]);
 
   const handleQuickSaveFromShare = useCallback(() => {
     if (currentSlot !== null) {
@@ -170,97 +159,6 @@ export default function App() {
     }
   }, [currentSlot, slots]);
 
-  const handleAddProduct = useCallback(() => {
-    if (!selectedProduct) return;
-
-    const qty = selectedProduct.priceType === 'kg'
-      ? parseWeightInput(qtyInput)
-      : parseFloat(qtyInput.replace(",", "."));
-    if (!qty || qty <= 0) return;
-
-    const isNew = !items.find(i => i.productId === selectedProduct.id);
-
-    const maxItens = isPremium ? MAX_ITENS_PREMIUM : MAX_ITENS_FREE;
-    if (isNew && items.length >= maxItens) {
-      showDialog({
-        title: "Limite do plano gratuito",
-        message: `Você atingiu ${MAX_ITENS_FREE} tipos de produto por pesagem. Assine o Premium para conferências ilimitadas.`,
-        variant: "premium",
-        confirmLabel: "Ver Premium",
-        cancelLabel: "Agora não",
-        onConfirm: () => {
-          setShowPaywallModal(true);
-        },
-      });
-      setProductSearch("");
-      setQtyInput("");
-      setSelectedProduct(null);
-      return;
-    }
-
-    // Calcular peso total e subtotal
-    let totalWeight: number;
-    let subtotal: number;
-
-    if (selectedProduct.priceType === "kg") {
-      totalWeight = qty;
-      subtotal = qty * selectedProduct.price;
-    } else {
-      // Vendido por unidade - peso total é 0 (não usado)
-      totalWeight = 0;
-      subtotal = qty * selectedProduct.price;
-    }
-
-    lastAddedIdRef.current = Date.now().toString();
-    setItems((prev) => {
-      const idx = prev.findIndex((i) => i.productId === selectedProduct.id);
-      if (idx !== -1) {
-        // Atualizar item existente
-        const existing = prev[idx];
-        const newQty = existing.qty + qty;
-        const newTotalWeight = existing.productPriceType === "kg"
-          ? existing.totalWeight + qty
-          : 0; // Por unidade, peso total não é usado
-        const newSubtotal = existing.subtotal + subtotal;
-
-        const u = [...prev];
-        u[idx] = {
-          ...u[idx],
-          qty: newQty,
-          totalWeight: newTotalWeight,
-          subtotal: newSubtotal,
-        };
-        return u;
-      }
-      // Adicionar novo item
-      return [...prev, {
-        id: Date.now().toString(),
-        productId: selectedProduct.id,
-        productName: selectedProduct.name,
-        productPrice: selectedProduct.price,
-        productPriceType: selectedProduct.priceType,
-        qty,
-        totalWeight,
-        subtotal,
-      }];
-    });
-    setProductSearch("");
-    setQtyInput("");
-    setSelectedProduct(null);
-  }, [selectedProduct, qtyInput, items, isPremium]);
-
-
-
-  const handleRemove = useCallback((id: string) => {
-    showDialog({
-      title: "Excluir produto?",
-      message: "Este produto será removido da lista.",
-      variant: "destructive",
-      confirmLabel: "Excluir",
-      onConfirm: () => setItems((prev) => prev.filter((i) => i.id !== id)),
-    });
-  }, [showDialog]);
-
   const handleClearAll = useCallback(() => {
     showDialog({
       title: "Limpar pesagem?",
@@ -268,17 +166,54 @@ export default function App() {
       variant: "destructive",
       confirmLabel: "Limpar",
       onConfirm: () => {
-        setItems([]);
+        setQuantities({});
         setCustomTitle("");
       },
     });
   }, [showDialog]);
 
+  const handleQuantityChange = (productId: string, value: string) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    setQuantityInputs(prev => ({ ...prev, [productId]: value }));
+
+    if (value === "" || value === ".") {
+      setQuantities(prev => ({ ...prev, [productId]: 0 }));
+      return;
+    }
+
+    let qty: number;
+    if (product.priceType === 'kg') {
+      qty = parseWeightInput(value);
+    } else {
+      qty = parseFloat(value.replace(",", "."));
+    }
+
+    if (!isNaN(qty) && qty >= 0) {
+      setQuantities(prev => ({ ...prev, [productId]: qty }));
+    }
+  };
+
+  const handleZeroAll = useCallback(() => {
+    showDialog({
+      title: "Zerar quantidades?",
+      message: "Todas as quantidades serão zeradas. Essa ação não pode ser desfeita.",
+      variant: "destructive",
+      confirmLabel: "Zerar",
+      cancelLabel: "Cancelar",
+      onConfirm: () => {
+        setQuantities({});
+        setQuantityInputs({});
+      },
+    });
+  }, [showDialog]);
+
   const handleOpenSaveModal = useCallback(() => {
-    if (items.length === 0) {
+    if (Object.keys(quantities).length === 0 || Object.values(quantities).every(q => q === 0)) {
       showDialog({
         title: "Nada para salvar",
-        message: "Adicione pelo menos um peso antes de salvar.",
+        message: "Adicione pelo menos uma quantidade antes de salvar.",
         variant: "alert",
       });
       return;
@@ -309,7 +244,7 @@ export default function App() {
     }
 
     setShowSaveModal(true);
-  }, [items, customTitle, currentSlot, slots]);
+  }, [quantities, customTitle, currentSlot, slots]);
 
   const handleNewList = useCallback(() => {
     showDialog({
@@ -323,15 +258,12 @@ export default function App() {
         handleOpenSaveModal();
       },
       onConfirm: () => {
-        setItems([]);
-        setProductSearch("");
-        setQtyInput("");
-        setSelectedProduct(null);
+        setQuantities({});
         setCustomTitle("");
         setCurrentSlot(null);
       },
     });
-  }, [showDialog, handleOpenSaveModal]);
+  }, [showDialog, handleOpenSaveModal, quantities]);
 
   const handleOpenLoadModal = useCallback(() => {
     readSlots().then((s) => { setSlots(s); setShowLoadModal(true); });
@@ -346,7 +278,7 @@ export default function App() {
         name: generateConferenceName(),
         customTitle: customTitle.trim() || undefined,
         date: new Date().toISOString(),
-        items,
+        quantities,
         createdAt: Date.now(),
       };
       await writeSlots(updated);
@@ -373,7 +305,7 @@ export default function App() {
   const handleLoadSlot = (slotIndex: number) => {
     const conf = slots[slotIndex];
     if (!conf) return;
-    setItems(conf.items);
+    setQuantities(conf.quantities || {});
     setCustomTitle(conf.customTitle || "");
     setCurrentSlot(slotIndex + 1);
     setShowLoadModal(false);
@@ -401,7 +333,7 @@ export default function App() {
 
   const handleShareWhatsApp = useCallback(async (conference: Conference, phone: string) => {
     try {
-      await shareViaWhatsApp(conference, phone);
+      await shareViaWhatsApp(conference, products, phone);
       showToast("Enviando para WhatsApp...");
     } catch (error) {
       showDialog({
@@ -410,11 +342,11 @@ export default function App() {
         variant: "alert",
       });
     }
-  }, []);
+  }, [products]);
 
   const handleSharePDF = useCallback(async (conference: Conference) => {
     try {
-      await generateAndSharePDF(conference);
+      await generateAndSharePDF(conference, products);
       showToast("PDF gerado com sucesso!");
     } catch (error) {
       showDialog({
@@ -423,23 +355,7 @@ export default function App() {
         variant: "alert",
       });
     }
-  }, []);
-
-  const handleSelectProduct = (product: Product) => {
-    setSelectedProduct(product);
-    setProductSearch(product.name);
-  };
-
-  const handleCreateProduct = () => {
-    setShowQuickProductModal(true);
-  };
-
-  const handleQuickProductSave = async (data: { name: string; price: number; priceType: PriceType; unitWeight?: number }) => {
-    const newProduct = await addProduct(data);
-    setSelectedProduct(newProduct);
-    setProductSearch(newProduct.name);
-    setShowQuickProductModal(false);
-  };
+  }, [products]);
 
   const handleShowIds = async () => {
     setShowMenu(false);
@@ -518,7 +434,7 @@ export default function App() {
                     }
                   },
                   { label: "Produtos", icon: "pricetag", color: "#FF9800", onPress: () => { setShowMenu(false); setShowProductsModal(true) } },
-                  { label: "Limpar", icon: "trash", color: "#e53935", onPress: () => { handleClearAll(); setShowMenu(false); } },
+                  { label: "Zerar Quantidades", icon: "refresh", color: "#e53935", onPress: () => { handleZeroAll(); setShowMenu(false); } },
                   { label: "Meu ID", icon: "phone-portrait", color: "#888", onPress: handleShowIds },
                   { label: "Premium", icon: "star", color: "#FFC83D", onPress: () => { setShowMenu(false); setShowPaywallModal(true) } },
                 ] as const).map((item, i, arr) => (
@@ -573,23 +489,23 @@ export default function App() {
             <View style={styles.divider} />
           </View>
 
-          {items.length > 0 && !isPremium && (
+          {activeProducts.length > 0 && !isPremium && (
             <View style={styles.counterRow}>
               <View style={styles.counterBarWrap}>
                 <View style={[styles.counterFill, {
-                  width: `${Math.min((items.length / MAX_ITENS_FREE) * 100, 100)}%` as any,
+                  width: `${Math.min((activeProducts.length / MAX_ITENS_FREE) * 100, 100)}%` as any,
                   backgroundColor:
-                    items.length >= MAX_ITENS_FREE ? "#e53935"
-                      : items.length >= MAX_ITENS_FREE * 0.8 ? "#ff9800"
+                    activeProducts.length >= MAX_ITENS_FREE ? "#e53935"
+                      : activeProducts.length >= MAX_ITENS_FREE * 0.8 ? "#ff9800"
                         : "#509AE2",
                 }]} />
               </View>
               <Text style={[
                 styles.counterText,
-                items.length >= MAX_ITENS_FREE * 0.8 && { color: "#ff9800" },
-                items.length >= MAX_ITENS_FREE && { color: "#e53935", fontWeight: "700" },
+                activeProducts.length >= MAX_ITENS_FREE * 0.8 && { color: "#ff9800" },
+                activeProducts.length >= MAX_ITENS_FREE && { color: "#e53935", fontWeight: "700" },
               ]}>
-                {items.length}/{MAX_ITENS_FREE} produtos
+                {activeProducts.length}/{MAX_ITENS_FREE} itens
               </Text>
             </View>
           )}
@@ -601,126 +517,78 @@ export default function App() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {items.length === 0 ? (
-              <Text style={styles.emptyText}>Nenhum produto adicionado ainda.</Text>
+            {products.length === 0 ? (
+              <Text style={styles.emptyText}>Nenhum produto cadastrado. Cadastre no menu "Produtos".</Text>
             ) : (
               <>
-                {sortedItems.map((item) => (
-                  <View key={item.id} style={styles.itemRow}>
-                    <View style={styles.itemMain}>
-                      <Text style={styles.itemName}>{item.productName}</Text>
-                      <View style={styles.itemDetails}>
-                        <Text style={styles.itemDetail}>
-                          QTD: {item.productPriceType === 'kg' ? formatWeight(item.qty) + ' kg' : item.qty + ' un'}
-                        </Text>
-                        {item.productPriceType === 'kg' && (
+                {sortedProducts.map((product) => {
+                  const qty = quantities[product.id] || 0;
+                  const inputText = quantityInputs[product.id] || "";
+                  const subtotal = qty * product.price;
+                  const isActive = qty > 0;
+                  return (
+                    <View key={product.id} style={[styles.itemRow, isActive && styles.itemRowActive]}>
+                      <View style={styles.itemMain}>
+                        <Text style={styles.itemName}>{product.name}</Text>
+                        <View style={styles.itemDetails}>
                           <Text style={styles.itemDetail}>
-                            Peso: {formatWeight(item.totalWeight)} kg
+                            R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
                           </Text>
-                        )}
-                        <Text style={[styles.itemDetail, styles.itemSubtotal]}>
-                          {formatCurrency(item.subtotal)}
-                        </Text>
+                          {isActive && (
+                            <>
+                              <Text style={[styles.itemDetail, styles.itemSubtotal]}>
+                                {formatCurrency(subtotal)}
+                              </Text>
+                              {product.priceType === 'kg' && (
+                                <Text style={styles.itemDetail}>
+                                  Peso: {formatWeight(qty)} kg
+                                </Text>
+                              )}
+                            </>
+                          )}
+                        </View>
+                      </View>
+                      <View style={styles.itemActions}>
+                        <TextInput
+                          style={styles.qtyInputList}
+                          value={inputText}
+                          onChangeText={(text) => {
+                            const formatted = product.priceType === 'kg' ? formatWeightInput(text) : text;
+                            handleQuantityChange(product.id, formatted);
+                          }}
+                          keyboardType="numeric"
+                          returnKeyType="done"
+                          placeholder="0"
+                          placeholderTextColor="#ccc"
+                        />
                       </View>
                     </View>
-                    <View style={styles.itemActions}>
-                      <TextInput
-                        style={styles.qtyInputList}
-                        value={item.qty.toString()}
-                        onChangeText={(text) => {
-                          if (text === "" || text === ".") {
-                            // Permite apagar completamente, mas não atualiza
-                            return;
-                          }
-                          const newQty = parseFloat(text.replace(",", "."));
-                          if (!isNaN(newQty) && newQty > 0) {
-                            const price = item.productPriceType === 'kg'
-                              ? newQty * item.productPrice
-                              : newQty * item.productPrice;
-                            const totalWeight = item.productPriceType === 'kg' ? newQty : 0;
-                            setItems(prev => prev.map(i =>
-                              i.id === item.id
-                                ? { ...i, qty: newQty, totalWeight, subtotal: price }
-                                : i
-                            ));
-                          }
-                        }}
-                        keyboardType="numeric"
-                        returnKeyType="done"
-                      />
-                      <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.trashButton} activeOpacity={0.7}>
-                        <Ionicons name="trash" size={20} color="#509AE2" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </>
             )}
           </ScrollView>
 
           {/* ── Bottom bar ── */}
           <View style={styles.bottomBar}>
-            {selectedProduct ? (
-              // Produto selecionado - mostra nome fixo e campo de quantidade
-              <>
-                <View style={styles.selectedProductContainer}>
-                  <View style={styles.selectedProductBadge}>
-                    <Ionicons name="pricetag" size={16} color="#fff" />
-                    <Text style={styles.selectedProductName}>{selectedProduct.name}</Text>
-                    <TouchableOpacity onPress={() => { setSelectedProduct(null); setProductSearch(""); setQtyInput(""); }}>
-                      <Ionicons name="close-circle" size={20} color="#fff" />
-                    </TouchableOpacity>
-                  </View>
-                  <TextInput
-                    style={styles.qtyInputCompact}
-                    value={qtyInput}
-                    onChangeText={(t) => {
-                      if (selectedProduct.priceType === 'kg') {
-                        setQtyInput(formatWeightInput(t));
-                      } else {
-                        setQtyInput(t);
-                      }
-                    }}
-                    keyboardType="numeric"
-                    placeholder={selectedProduct.priceType === 'kg' ? "0,000 kg" : "0 un"}
-                    placeholderTextColor="#aaa"
-                    returnKeyType="done"
-                    blurOnSubmit={false}
-                    onSubmitEditing={handleAddProduct}
-                  />
-                </View>
-                <TouchableOpacity
-                  style={[styles.addButton, !qtyInput && styles.addButtonDisabled]}
-                  onPress={handleAddProduct}
-                  activeOpacity={0.85}
-                  disabled={!qtyInput}
-                >
-                  <Ionicons name="add-circle" size={20} color="#fff" />
-                  <Text style={styles.addButtonText}>Adicionar</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              // Buscando produto - mostra autocomplete
-              <>
-                <View style={styles.inputContainer}>
-                  <ProductAutocomplete
-                    products={products}
-                    value={productSearch}
-                    onChangeText={setProductSearch}
-                    onSelectProduct={handleSelectProduct}
-                    onCreateNew={handleCreateProduct}
-                    placeholder="Buscar produto..."
-                  />
-                </View>
-                <TouchableOpacity
-                  style={styles.productsMenuButton}
-                  onPress={() => setShowProductsModal(true)}
-                >
-                  <Ionicons name="pricetag" size={20} color="#FF9800" />
-                  <Text style={styles.productsMenuButtonText}>Produtos</Text>
-                </TouchableOpacity>
-              </>
-            )}
+            <TouchableOpacity
+              style={styles.zeroButton}
+              onPress={handleZeroAll}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="refresh" size={20} color="#e53935" />
+              <Text style={styles.zeroButtonText}>Zerar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.finalizeButton}
+              onPress={() => setShowFinalizeModal(true)}
+              activeOpacity={0.85}
+              disabled={activeProducts.length === 0}
+            >
+              <Ionicons name="checkmark-circle" size={20} color="#fff" />
+              <Text style={styles.finalizeButtonText}>Finalizar</Text>
+            </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
 
@@ -744,8 +612,9 @@ export default function App() {
         onClose={() => setShowShareModal(false)}
         slots={slots}
         currentSlot={currentSlot}
-        currentItems={items}
+        currentQuantities={quantities}
         currentCustomTitle={customTitle}
+        products={products}
         onShareWhatsApp={handleShareWhatsApp}
         onSharePDF={handleSharePDF}
         onQuickSave={handleQuickSaveFromShare}
@@ -770,13 +639,14 @@ export default function App() {
         onClose={() => setShowLoadModal(false)}
         slots={slots}
         currentSlot={currentSlot}
-        currentItems={items}
+        currentQuantities={quantities}
         currentCustomTitle={customTitle}
         onLoadSlot={handleLoadSlot}
         onDeleteSlot={handleDeleteSlot}
         onQuickSave={handleQuickSaveFromLoad}
         readSlots={readSlots}
         setSlots={setSlots}
+        products={products}
       />
 
       {/* ════════════ MODAL: PAYWALL ════════════ */}
@@ -792,14 +662,6 @@ export default function App() {
       {/* ════════════ APP DIALOG (substitui Alert.alert) ════════════ */}
       <AppDialog config={dialogConfig} show={showDialog} dismiss={dismissDialog} />
 
-      {/* ════════════ MODAL: QUICK PRODUCT ════════════ */}
-      <QuickProductModal
-        visible={showQuickProductModal}
-        onClose={() => setShowQuickProductModal(false)}
-        onSave={handleQuickProductSave}
-        initialName={productSearch}
-      />
-
       {/* ════════════ MODAL: PRODUCTS ════════════ */}
       <ProductsModal
         visible={showProductsModal}
@@ -808,6 +670,17 @@ export default function App() {
         onAddProduct={addProduct}
         onUpdateProduct={updateProduct}
         onDeleteProduct={deleteProduct}
+      />
+
+      {/* ════════════ MODAL: FINALIZE ════════════ */}
+      <FinalizeModal
+        visible={showFinalizeModal}
+        onClose={() => setShowFinalizeModal(false)}
+        products={products}
+        quantities={quantities}
+        totalValue={totalValue}
+        totalWeight={totalWeight}
+        totalQty={totalQty}
       />
     </SafeAreaProvider>
   );
@@ -907,6 +780,7 @@ const styles = StyleSheet.create({
   // ── Empty / Table ──
   emptyText: { textAlign: "center", color: LABEL_COLOR, marginTop: 40, fontSize: 15 },
   itemRow: { flexDirection: "row", backgroundColor: "#fff", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
+  itemRowActive: { backgroundColor: "#f0f9ff" },
   itemMain: { flex: 1, justifyContent: "center" },
   itemName: { fontSize: 16, fontWeight: "700", color: "#1a1a1a", marginBottom: 4 },
   itemDetails: { flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" },
@@ -926,7 +800,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "700",
   },
-  trashButton: { padding: 4 },
   counterRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", paddingHorizontal: 16, paddingVertical: 6, gap: 10, borderBottomWidth: 1, borderBottomColor: BORDER_COLOR },
   counterBarWrap: { flex: 1, height: 4, borderRadius: 99, backgroundColor: "#f0f0f0", overflow: "hidden" },
   counterFill: { height: "100%", borderRadius: 99 },
@@ -938,70 +811,33 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: BORDER_COLOR,
     paddingHorizontal: 12, paddingVertical: 10, gap: 10, marginBottom: 50,
   },
-  inputContainer: { flex: 1, gap: 8 },
-  selectedProductContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  selectedProductBadge: {
+  zeroButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#FF9800",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  selectedProductName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#fff",
-    maxWidth: 120,
-  },
-  qtyInputCompact: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: BORDER_COLOR,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 10 : 8,
-    fontSize: 16,
-    color: "#1a1a1a",
-    backgroundColor: "#fafafa",
-    textAlign: "right",
-    fontWeight: "700",
-  },
-  qtyInput: {
-    borderWidth: 1.5, borderColor: BORDER_COLOR,
-    borderRadius: 8, paddingHorizontal: 14,
-    paddingVertical: Platform.OS === "ios" ? 12 : 10,
-    fontSize: 16, color: "#1a1a1a", backgroundColor: "#fafafa",
-    textAlign: "right", fontWeight: "700",
-  },
-  addButton: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "#509AE2", borderRadius: 8,
-    paddingHorizontal: 16, paddingVertical: Platform.OS === "ios" ? 14 : 12,
-  },
-  addButtonDisabled: { opacity: 0.5 },
-  addButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
-  productsMenuButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#FFF3E0",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: "#ffebee",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#FFE0B2",
+    borderColor: "#ffcdd2",
   },
-  productsMenuButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FF9800",
+  zeroButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#e53935",
   },
+  finalizeButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#2e7d32",
+    borderRadius: 8,
+    paddingVertical: Platform.OS === "ios" ? 14 : 12,
+  },
+  finalizeButtonDisabled: { opacity: 0.5 },
+  finalizeButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 
 });

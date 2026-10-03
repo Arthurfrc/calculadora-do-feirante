@@ -26,6 +26,6 @@ export interface Conference {
     name: string;
     customTitle?: string;
     date: string;
-    items: WeightItem[];
+    quantities: Record<string, number>; // productId -> qty
     createdAt: number;
 }

@@ -2,12 +2,21 @@
 
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { Conference } from '../types';
+import { Conference, Product } from '../types';
 import { formatWeight, formatCurrency, getDisplayName, formatDate } from '../utils/formatters';
 
-export async function generateAndSharePDF(conference: Conference): Promise<void> {
-    const totalWeight = conference.items.reduce((sum, i) => sum + i.totalWeight, 0);
-    const totalValue = conference.items.reduce((sum, i) => sum + i.subtotal, 0);
+export async function generateAndSharePDF(conference: Conference, products: Product[]): Promise<void> {
+    const quantities = conference.quantities || {};
+    const totalWeight = Object.entries(quantities).reduce((sum, [productId, qty]) => {
+        const product = products.find(p => p.id === productId);
+        if (!product || product.priceType !== 'kg') return sum;
+        return sum + qty;
+    }, 0);
+    const totalValue = Object.entries(quantities).reduce((sum, [productId, qty]) => {
+        const product = products.find(p => p.id === productId);
+        if (!product) return sum;
+        return sum + (qty * product.price);
+    }, 0);
 
     const html = `
         <!DOCTYPE html>
@@ -36,22 +45,28 @@ export async function generateAndSharePDF(conference: Conference): Promise<void>
                     <th>Peso Total (kg)</th>
                     <th>Subtotal (R$)</th>
                 </tr>
-                ${[...conference.items].sort((a, b) => a.productName.localeCompare(b.productName)).map(item => {
-                    const qtyText = item.productPriceType === 'kg'
-                        ? `${formatWeight(item.qty)} kg`
-                        : `${item.qty} un`;
-                    const weightText = item.productPriceType === 'kg'
-                        ? formatWeight(item.totalWeight)
-                        : '-';
-                    return `
-                    <tr>
-                        <td>${item.productName}</td>
-                        <td>${qtyText}</td>
-                        <td>${weightText}</td>
-                        <td>${formatCurrency(item.subtotal)}</td>
-                    </tr>
-                `;
-                }).join('')}
+                ${Object.entries(quantities)
+                    .filter(([_, qty]) => qty > 0)
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([productId, qty]) => {
+                        const product = products.find(p => p.id === productId);
+                        if (!product) return '';
+                        const qtyText = product.priceType === 'kg'
+                            ? `${formatWeight(qty)} kg`
+                            : `${qty} un`;
+                        const weightText = product.priceType === 'kg'
+                            ? formatWeight(qty)
+                            : '-';
+                        const subtotal = qty * product.price;
+                        return `
+                        <tr>
+                            <td>${product.name}</td>
+                            <td>${qtyText}</td>
+                            <td>${weightText}</td>
+                            <td>${formatCurrency(subtotal)}</td>
+                        </tr>
+                        `;
+                    }).join('')}
             </table>
 
             <div class="total">Peso Total: ${formatWeight(totalWeight)} kg</div>

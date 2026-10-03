@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Keyboard } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Conference, WeightItem } from "../types";
+import { Conference, Product } from "../types";
 import { formatDate, formatWeight, formatCurrency, getDisplayName } from "../utils/formatters";
 
 interface Props {
@@ -11,8 +11,9 @@ interface Props {
     onClose: () => void;
     slots: (Conference | null)[];
     currentSlot: number | null;
-    currentItems: WeightItem[];
+    currentQuantities: Record<string, number>;
     currentCustomTitle: string;
+    products: Product[];
     onShareWhatsApp: (conference: Conference, phone: string) => void;
     onSharePDF: (conference: Conference) => void;
     onQuickSave: () => void;
@@ -21,7 +22,7 @@ interface Props {
     isPremium: boolean;
 }
 
-export function ShareModal({ visible, onClose, slots, currentSlot, currentItems, currentCustomTitle, onShareWhatsApp, onSharePDF, onQuickSave, readSlots, setSlots, isPremium }: Props) {
+export function ShareModal({ visible, onClose, slots, currentSlot, currentQuantities, currentCustomTitle, products, onShareWhatsApp, onSharePDF, onQuickSave, readSlots, setSlots, isPremium }: Props) {
     const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
     const [shareMethod, setShareMethod] = useState<"whatsapp" | "pdf" | null>(null);
     const [phoneInput, setPhoneInput] = useState("");
@@ -78,18 +79,22 @@ export function ShareModal({ visible, onClose, slots, currentSlot, currentItems,
 
     const hasUnsavedChanges = (): boolean => {
         if (justSaved) return false;
-        if (currentItems.length === 0) return false; // Lista vazia: nada a salvar, libera o picker
+        const activeQuantities = Object.entries(currentQuantities).filter(([_, qty]) => qty > 0);
+        if (activeQuantities.length === 0) return false; // Nada preenchido
         if (currentSlot === null) return true; // Nunca salvo = tem alterações
 
         const savedConference = slots[currentSlot - 1];
         if (!savedConference) return true;
 
-        // Comparar itens
-        if (currentItems.length !== savedConference.items.length) return true;
+        // Comparar quantidades
+        const savedQuantities = savedConference.quantities || {};
+        const currentKeys = Object.keys(currentQuantities).filter(k => currentQuantities[k] > 0);
+        const savedKeys = Object.keys(savedQuantities).filter(k => savedQuantities[k] > 0);
 
-        for (let i = 0; i < currentItems.length; i++) {
-            if (currentItems[i].productId !== savedConference.items[i].productId) return true;
-            if (currentItems[i].qty !== savedConference.items[i].qty) return true;
+        if (currentKeys.length !== savedKeys.length) return true;
+
+        for (const key of currentKeys) {
+            if (currentQuantities[key] !== savedQuantities[key]) return true;
         }
 
         // Comparar título
@@ -102,16 +107,33 @@ export function ShareModal({ visible, onClose, slots, currentSlot, currentItems,
         const lines: string[] = [];
         lines.push(`📋 "${getDisplayName(conf)}"\n`);
 
-        [...conf.items].sort((a, b) => a.productName.localeCompare(b.productName)).forEach(item => {
-            const qtyText = item.productPriceType === 'kg'
-                ? `${formatWeight(item.qty)} kg`
-                : `${item.qty} un`;
-            lines.push(`${item.productName} × ${qtyText} = ${formatWeight(item.totalWeight)} kg`);
-        });
+        const quantities = conf.quantities || {};
+        Object.entries(quantities)
+            .filter(([_, qty]) => qty > 0)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .forEach(([productId, qty]) => {
+                const product = products.find(p => p.id === productId);
+                if (!product) return;
+                const qtyText = product.priceType === 'kg'
+                    ? `${formatWeight(qty)} kg`
+                    : `${qty} un`;
+                const weightText = product.priceType === 'kg'
+                    ? `= ${formatWeight(qty)} kg`
+                    : '';
+                lines.push(`${product.name} × ${qtyText} ${weightText}`);
+            });
 
         lines.push("─────────────────");
-        const totalWeight = conf.items.reduce((sum, i) => sum + i.totalWeight, 0);
-        const totalValue = conf.items.reduce((sum, i) => sum + i.subtotal, 0);
+        const totalWeight = Object.entries(quantities).reduce((sum, [productId, qty]) => {
+            const product = products.find(p => p.id === productId);
+            if (!product || product.priceType !== 'kg') return sum;
+            return sum + qty;
+        }, 0);
+        const totalValue = Object.entries(quantities).reduce((sum, [productId, qty]) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return sum;
+            return sum + (qty * product.price);
+        }, 0);
         lines.push(`Peso total: ${formatWeight(totalWeight)} kg`);
         lines.push(`Valor total: ${formatCurrency(totalValue)}`);
 
@@ -175,7 +197,7 @@ export function ShareModal({ visible, onClose, slots, currentSlot, currentItems,
                                                 <View style={styles.slotInfo}>
                                                     <Text style={styles.slotName} numberOfLines={1}>{getDisplayName(conf)}</Text>
                                                     <Text style={styles.slotMeta}>
-                                                        {formatDate(conf.date)} · {conf.items.length} itens · {formatWeight(conf.items.reduce((s, it) => s + it.totalWeight, 0))} kg
+                                                        {formatDate(conf.date)} · {Object.keys(conf.quantities || {}).filter(k => conf.quantities![k] > 0).length} itens · {formatWeight(Object.entries(conf.quantities || {}).reduce((s, [_, qty]) => s + qty, 0))} kg
                                                     </Text>
                                                 </View>
                                             ) : (

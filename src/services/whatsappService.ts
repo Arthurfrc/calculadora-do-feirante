@@ -1,35 +1,49 @@
 // src/services/whatsappService.ts
 
 import * as Linking from 'expo-linking';
-import { Conference } from '../types';
+import { Conference, Product } from '../types';
 import { formatWeight, formatCurrency, getDisplayName } from '../utils/formatters';
 
-export function formatConferenceForWhatsApp(conference: Conference): string {
+export function formatConferenceForWhatsApp(conference: Conference, products: Product[]): string {
     const lines: string[] = [];
     lines.push(`📋 *${getDisplayName(conference)}*`);
     lines.push('');
 
-    [...conference.items].sort((a,b) => a.productName.localeCompare(b.productName)).forEach(item => {
-        const qtyText = item.productPriceType === 'kg'
-            ? `${formatWeight(item.qty)} kg`
-            : `${item.qty} un`;
-        const weightText = item.productPriceType === 'kg'
-            ? `= ${formatWeight(item.totalWeight)} kg`
-            : '';
-        lines.push(`${item.productName} × ${qtyText} ${weightText}`);
-    });
+    const quantities = conference.quantities || {};
+    Object.entries(quantities)
+        .filter(([_, qty]) => qty > 0)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .forEach(([productId, qty]) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const qtyText = product.priceType === 'kg'
+                ? `${formatWeight(qty)} kg`
+                : `${qty} un`;
+            const weightText = product.priceType === 'kg'
+                ? `= ${formatWeight(qty)} kg`
+                : '';
+            lines.push(`${product.name} × ${qtyText} ${weightText}`);
+        });
 
     lines.push('─────────────────');
-    const totalWeight = conference.items.reduce((sum, i) => sum + i.totalWeight, 0);
-    const totalValue = conference.items.reduce((sum, i) => sum + i.subtotal, 0);
+    const totalWeight = Object.entries(quantities).reduce((sum, [productId, qty]) => {
+        const product = products.find(p => p.id === productId);
+        if (!product || product.priceType !== 'kg') return sum;
+        return sum + qty;
+    }, 0);
+    const totalValue = Object.entries(quantities).reduce((sum, [productId, qty]) => {
+        const product = products.find(p => p.id === productId);
+        if (!product) return sum;
+        return sum + (qty * product.price);
+    }, 0);
     lines.push(`*Peso total: ${formatWeight(totalWeight)} kg*`);
     lines.push(`*Valor total: ${formatCurrency(totalValue)}*`);
 
     return lines.join('\n');
 }
 
-export async function shareViaWhatsApp(conference: Conference, phone: string): Promise<void> {
-    const message = formatConferenceForWhatsApp(conference);
+export async function shareViaWhatsApp(conference: Conference, products: Product[], phone: string): Promise<void> {
+    const message = formatConferenceForWhatsApp(conference, products);
     const encodedMessage = encodeURIComponent(message);
 
     // Formata o número para o WhatsApp (55 + DDD + número)

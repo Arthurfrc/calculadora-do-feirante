@@ -17,7 +17,6 @@
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-google-mobile-ads": "^17.2.0",
     "react-native-purchases": "^10.11.0",
     "react-native-purchases-ui": "^10.11.0",
     "react-native-safe-area-context": "~5.7.0"
@@ -30,7 +29,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:apk": "eas build --platform android --profile preview",
+    "build:aab": "eas build --platform android --profile production"
   },
   "private": true
 }
