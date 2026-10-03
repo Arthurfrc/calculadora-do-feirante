@@ -1,41 +1,120 @@
+# Calculadora do Feirante
+
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
-## Expo has changed — do not trust your training data
+## Expo Version
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
-
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+This project uses **Expo SDK 57**. Always check the official docs before writing code:
+- https://docs.expo.dev/versions/v57.0.0/
+- https://docs.expo.dev/llms.txt
 
 ## Commands
-
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
 
 ```bash
 npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
 npx expo start              # start the dev server
-npx expo lint               # lint
 npx tsc --noEmit            # typecheck
 npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+**Run typecheck before declaring any task done.**
 
-## Navigation & Routing
+## Architecture
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+### Project Structure
+```
+src/
+├── components/     # Reusable UI components
+│   ├── AppDialog.tsx    # Custom dialog with variants (alert, confirm, destructive, premium)
+│   └── Toast.tsx        # Toast notification
+├── hooks/          # Custom React hooks
+│   ├── useSlots.ts     # Manages conference slots (AsyncStorage)
+│   └── usePurchases.ts # RevenueCat integration for premium features
+├── modals/         # Modal components
+│   ├── SaveModal.tsx   # Save conference with custom title
+│   ├── LoadModal.tsx   # Load/delete saved conferences
+│   ├── ShareModal.tsx  # Share via WhatsApp or PDF (premium)
+│   └── PaywallModal.tsx # Premium subscription UI
+├── services/       # External service integrations
+│   ├── whatsappService.ts  # WhatsApp sharing
+│   └── printService.ts     # PDF generation
+├── utils/          # Utility functions
+│   └── formatters.ts   # Formatting functions (weight, currency, dates)
+└── types.ts        # TypeScript types
+```
 
-## Building with EAS
+### Key Features
 
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
+1. **Weight Conference System**
+   - Add weights (kg) with quantities
+   - Auto-calculate total weight and value
+   - Sorted list by weight
+   - Increment/decrement quantities
 
-## Rules
+2. **Slot System (Storage)**
+   - 20 slots free, 999 premium
+   - AsyncStorage persistence
+   - Save/load/delete conferences
+   - Custom titles for conferences
 
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+3. **Premium Features (RevenueCat)**
+   - WhatsApp sharing
+   - PDF export
+   - No ads
+   - Unlimited slots and items
+
+4. **Monetization**
+   - Google Mobile Ads (banner)
+   - RevenueCat for subscriptions
+   - Premium/Enterprise tiers
+
+## Environment Variables
+
+Required in `.env`:
+```env
+EXPO_PUBLIC_MAX_ITENS_FREE=50
+EXPO_PUBLIC_MAX_ITENS_PREMIUM=999
+EXPO_PUBLIC_MAX_SLOTS_FREE=20
+EXPO_PUBLIC_MAX_SLOTS_PREMIUM=999
+EXPO_PUBLIC_REVENUE_APP=sua_chave_revenuecat
+EXPO_PUBLIC_APP_NAME=Calculadora do Feirante
+EXPO_PUBLIC_ID_AD=ca-app-pub-3940256099942544/6300978111
+```
+
+## Important Notes
+
+- **RevenueCat**: Uses entitlement "Calculadora Feirante Premium" for premium features
+- **Google Ads**: Test ID used for development - replace with production ID
+- **AsyncStorage**: Key `@conferences_v2` for conference storage
+- **Format**: All weights use 3 decimal places (e.g., 1.250 kg)
+- **Currency**: BRL (R$) formatting
+
+## Dependencies
+
+Key packages:
+- `@expo/vector-icons` - Icons
+- `@react-native-async-storage/async-storage` - Local storage
+- `expo-constants` - App config
+- `expo-print` - PDF generation
+- `expo-sharing` - File sharing
+- `expo-linear-gradient` - Gradients
+- `react-native-google-mobile-ads` - Ads
+- `react-native-purchases` - Subscriptions
+- `react-native-safe-area-context` - Safe areas
+
+## Testing
+
+Always run typecheck:
+```bash
+npx tsc --noEmit
+```
+
+## Development
+
+To start the dev server:
+```bash
+npx expo start
+```
+
+Press `a` for Android or `w` for web.
