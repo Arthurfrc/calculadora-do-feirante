@@ -33,12 +33,13 @@ import { generateAndSharePDF } from "./src/services/printService";
 
 const ROW_HEIGHT = 80; // Aumentado para 2 linhas por item
 const HEADER_HEIGHT = 42;
-const MAX_ITENS_FREE = parseInt(process.env.EXPO_PUBLIC_MAX_ITENS_FREE ?? "50");
+const MAX_ITENS_FREE = parseInt(process.env.EXPO_PUBLIC_MAX_ITENS_FREE ?? "15");
 const MAX_ITENS_PREMIUM = parseInt(process.env.EXPO_PUBLIC_MAX_ITENS_PREMIUM ?? "999");
 
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
 export default function App() {
+  const [solMode, setSolMode] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
@@ -74,7 +75,8 @@ export default function App() {
   // ── Computed ──────────────────────────────────────────────────────────────
 
   const activeProducts = products.filter(p => quantities[p.id] && quantities[p.id] > 0);
-  const totalQty = activeProducts.reduce((sum, p) => sum + (quantities[p.id] || 0), 0);
+  // const totalQty = activeProducts.reduce((sum, p) => sum + (quantities[p.id] || 0), 0);
+  const totalQty = activeProducts.length;
   const totalWeight = activeProducts.reduce((sum, p) => {
     const qty = quantities[p.id] || 0;
     return sum + (p.priceType === 'kg' ? qty : 0);
@@ -398,8 +400,8 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <SafeAreaView style={[styles.safeArea, solMode && sol.bg]}>
+        <StatusBar barStyle={solMode ? "light-content" : "dark-content"} backgroundColor={solMode ? "#000" : "#fff"} />
 
         <KeyboardAvoidingView
           style={styles.flex}
@@ -410,7 +412,7 @@ export default function App() {
           {showMenu && (
             <>
               <TouchableOpacity style={styles.menuOverlay} activeOpacity={1} onPress={() => setShowMenu(false)} />
-              <View style={styles.menuDropdown}>
+              <View style={[styles.menuDropdown, solMode && sol.menu]}>
                 {([
                   { label: "Nova Pesagem", icon: "add-circle", color: "#25D366", onPress: () => { handleNewList(); setShowMenu(false); } },
                   { label: "Salvar", icon: "save-sharp", color: "#509AE2", onPress: () => { handleOpenSaveModal(); setShowMenu(false); } },
@@ -440,11 +442,11 @@ export default function App() {
                 ] as const).map((item, i, arr) => (
                   <TouchableOpacity
                     key={item.label}
-                    style={[styles.menuItem, i === arr.length - 1 && { borderBottomWidth: 0 }]}
+                    style={[styles.menuItem, solMode && sol.menuItem, i === arr.length - 1 && { borderBottomWidth: 0 }]}
                     onPress={item.onPress}
                   >
-                    <Ionicons name={item.icon as any} size={20} color={item.color} />
-                    <Text style={[styles.menuItemText, { color: item.color }]}>{item.label}</Text>
+                    <Ionicons name={item.icon as any} size={20} color={solMode && (item.color === "#333" || item.color === "#888") ? "#fff" : item.color} />
+                    <Text style={[styles.menuItemText, { color: solMode && (item.color === "#333" || item.color === "#888") ? "#fff" : item.color }]}>{item.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -452,19 +454,22 @@ export default function App() {
           )}
 
           {/* ── Header ── */}
-          <View style={styles.fixedTop}>
+          <View style={[styles.fixedTop, solMode && sol.bg]}>
             {/* Título do app + botão menu */}
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>{Constants.expoConfig?.extra?.APP_NAME || 'Calculadora do Feirante'}</Text>
-              <TouchableOpacity style={styles.menuButton} onPress={() => setShowMenu(!showMenu)}>
-                <Ionicons name="menu" size={26} color="#555" />
+              <Text style={[styles.title, solMode && sol.text]}>{Constants.expoConfig?.extra?.APP_NAME || 'Calculadora do Feirante'}</Text>
+              <TouchableOpacity style={[styles.menuButton, solMode && sol.btn]} onPress={() => setShowMenu(!showMenu)}>
+                <Ionicons name="menu" size={26} color={solMode ? "#fff" : "#555"} />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.menuButton, solMode && sol.btn, { marginLeft: 8 }]} onPress={() => setSolMode(v => !v)}>
+                <Ionicons name={solMode ? "sunny" : "moon"} size={26} color={solMode ? "#ff0" : "#555"} />
               </TouchableOpacity>
             </View>
 
             {/* Campo de título personalizado — linha própria, largura total */}
             <View style={styles.titleInputRow}>
               <TextInput
-                style={styles.customTitleInput}
+                style={[styles.customTitleInput, solMode && sol.input]}
                 value={customTitle}
                 onChangeText={setCustomTitle}
                 placeholder="Título da pesagem (opcional)"
@@ -477,20 +482,20 @@ export default function App() {
             {/* Estatísticas */}
             <View style={styles.statsRow}>
               <View style={styles.statBlock}>
-                <Text style={styles.statLabel}>ITENS</Text>
-                <Text style={styles.statValue}>{totalQty}</Text>
+                <Text style={[styles.statLabel, solMode && sol.text]}>PRODUTOS</Text>
+                <Text style={[styles.statValue, solMode && sol.text]}>{totalQty}</Text>
               </View>
               <View style={[styles.statBlock, styles.statBlockRight]}>
-                <Text style={styles.statLabel}>VALOR TOTAL</Text>
-                <Text style={styles.statValue}>{formatCurrency(totalValue)}</Text>
+                <Text style={[styles.statLabel, solMode && sol.text]}>VALOR TOTAL</Text>
+                <Text style={[styles.statValue, solMode && sol.yellow]}>{formatCurrency(totalValue)}</Text>
               </View>
             </View>
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, solMode && sol.divider]} />
           </View>
 
           {activeProducts.length > 0 && !isPremium && (
-            <View style={styles.counterRow}>
+            <View style={[styles.counterRow, solMode && sol.counterRow]}>
               <View style={styles.counterBarWrap}>
                 <View style={[styles.counterFill, {
                   width: `${Math.min((activeProducts.length / MAX_ITENS_FREE) * 100, 100)}%` as any,
@@ -502,6 +507,7 @@ export default function App() {
               </View>
               <Text style={[
                 styles.counterText,
+                solMode && sol.text,
                 activeProducts.length >= MAX_ITENS_FREE * 0.8 && { color: "#ff9800" },
                 activeProducts.length >= MAX_ITENS_FREE && { color: "#e53935", fontWeight: "700" },
               ]}>
@@ -512,7 +518,7 @@ export default function App() {
           {/* ── List ── */}
           <ScrollView
             ref={scrollViewRef}
-            style={styles.scrollView}
+            style={[styles.scrollView, solMode && sol.bg]}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -527,20 +533,20 @@ export default function App() {
                   const subtotal = qty * product.price;
                   const isActive = qty > 0;
                   return (
-                    <View key={product.id} style={[styles.itemRow, isActive && styles.itemRowActive]}>
+                    <View key={product.id} style={[styles.itemRow, isActive && styles.itemRowActive, solMode && sol.itemRow, solMode && isActive && sol.itemRowActive]}>
                       <View style={styles.itemMain}>
-                        <Text style={styles.itemName}>{product.name}</Text>
+                        <Text style={[styles.itemName, solMode && sol.text]}>{product.name}</Text>
                         <View style={styles.itemDetails}>
-                          <Text style={styles.itemDetail}>
+                          <Text style={[styles.itemDetail, solMode && sol.detail]}>
                             R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
                           </Text>
                           {isActive && (
                             <>
-                              <Text style={[styles.itemDetail, styles.itemSubtotal]}>
+                              <Text style={[styles.itemDetail, styles.itemSubtotal, solMode && sol.yellow]}>
                                 {formatCurrency(subtotal)}
                               </Text>
                               {product.priceType === 'kg' && (
-                                <Text style={styles.itemDetail}>
+                                <Text style={[styles.itemDetail, solMode && sol.detail]}>
                                   Peso: {formatWeight(qty)} kg
                                 </Text>
                               )}
@@ -550,7 +556,7 @@ export default function App() {
                       </View>
                       <View style={styles.itemActions}>
                         <TextInput
-                          style={styles.qtyInputList}
+                          style={[styles.qtyInputList, solMode && sol.input]}
                           value={inputText}
                           onChangeText={(text) => {
                             const formatted = product.priceType === 'kg' ? formatWeightInput(text) : text;
@@ -570,24 +576,24 @@ export default function App() {
           </ScrollView>
 
           {/* ── Bottom bar ── */}
-          <View style={styles.bottomBar}>
+          <View style={[styles.bottomBar, solMode && sol.bottomBar]}>
             <TouchableOpacity
-              style={styles.zeroButton}
+              style={[styles.zeroButton, solMode && sol.zeroButton]}
               onPress={handleZeroAll}
               activeOpacity={0.85}
             >
               <Ionicons name="refresh" size={20} color="#e53935" />
-              <Text style={styles.zeroButtonText}>Zerar</Text>
+              <Text style={[styles.zeroButtonText, solMode && sol.zeroText]}>Zerar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.finalizeButton}
+              style={[styles.finalizeButton, solMode && sol.finalize]}
               onPress={() => setShowFinalizeModal(true)}
               activeOpacity={0.85}
               disabled={activeProducts.length === 0}
             >
-              <Ionicons name="checkmark-circle" size={20} color="#fff" />
-              <Text style={styles.finalizeButtonText}>Finalizar</Text>
+              <Ionicons name="checkmark-circle" size={20} color={solMode ? "#000" : "#fff"} />
+              <Text style={[styles.finalizeButtonText, solMode && sol.finalizeText]}>Finalizar</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -627,6 +633,7 @@ export default function App() {
       {/* ════════════ MODAL: SALVAR ════════════ */}
       <SaveModal
         visible={showSaveModal}
+        solMode={solMode}
         onClose={() => setShowSaveModal(false)}
         customTitle={customTitle}
         onChangeTitle={setCustomTitle}
@@ -636,6 +643,7 @@ export default function App() {
       {/* ════════════ MODAL: CARREGAR ════════════ */}
       <LoadModal
         visible={showLoadModal}
+        solMode={solMode}
         onClose={() => setShowLoadModal(false)}
         slots={slots}
         currentSlot={currentSlot}
@@ -660,11 +668,12 @@ export default function App() {
       />
 
       {/* ════════════ APP DIALOG (substitui Alert.alert) ════════════ */}
-      <AppDialog config={dialogConfig} show={showDialog} dismiss={dismissDialog} />
+      <AppDialog solMode={solMode} config={dialogConfig} show={showDialog} dismiss={dismissDialog} />
 
       {/* ════════════ MODAL: PRODUCTS ════════════ */}
       <ProductsModal
         visible={showProductsModal}
+        solMode={solMode}
         onClose={() => setShowProductsModal(false)}
         products={products}
         onAddProduct={addProduct}
@@ -675,6 +684,7 @@ export default function App() {
       {/* ════════════ MODAL: FINALIZE ════════════ */}
       <FinalizeModal
         visible={showFinalizeModal}
+        solMode={solMode}
         onClose={() => setShowFinalizeModal(false)}
         products={products}
         quantities={quantities}
@@ -840,4 +850,26 @@ const styles = StyleSheet.create({
   finalizeButtonDisabled: { opacity: 0.5 },
   finalizeButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 
+});
+
+// ─── Modo sol (SÓ cores) ──────────────────────────────────────────────────────
+
+const sol = StyleSheet.create({
+  bg: { backgroundColor: "#000" },
+  text: { color: "#fff" },
+  yellow: { color: "#ff0" },
+  detail: { color: "#ddd" },
+  btn: { backgroundColor: "#333" },
+  divider: { backgroundColor: "#555" },
+  input: { backgroundColor: "#222", color: "#fff", borderColor: "#ff0" },
+  menu: { backgroundColor: "#000", borderWidth: 1, borderColor: "#ff0" },
+  menuItem: { borderBottomColor: "#444" },
+  counterRow: { backgroundColor: "#000", borderBottomColor: "#555" },
+  itemRow: { backgroundColor: "#000", borderBottomColor: "#444" },
+  itemRowActive: { backgroundColor: "#1c1c00" },
+  bottomBar: { backgroundColor: "#000", borderTopColor: "#555" },
+  zeroButton: { backgroundColor: "#000", borderColor: "#e53935" },
+  zeroText: { color: "#ff5252" },
+  finalize: { backgroundColor: "#ff0" },
+  finalizeText: { color: "#000" },
 });

@@ -8,6 +8,7 @@ import { formatDate, formatWeight, getDisplayName } from "../utils/formatters";
 
 interface Props {
     visible: boolean;
+    solMode?: boolean;
     onClose: () => void;
     slots: (Conference | null)[];
     currentSlot: number | null;
@@ -21,7 +22,7 @@ interface Props {
     products: Product[];
 }
 
-export function LoadModal({ visible, onClose, slots, currentSlot, currentQuantities, currentCustomTitle, onLoadSlot, onDeleteSlot, onQuickSave, readSlots, setSlots, products }: Props) {
+export function LoadModal({ solMode, visible, onClose, slots, currentSlot, currentQuantities, currentCustomTitle, onLoadSlot, onDeleteSlot, onQuickSave, readSlots, setSlots, products }: Props) {
     const [justSaved, setJustSaved] = useState(false);
     const MAX_SLOTS_FREE = parseInt(process.env.EXPO_PUBLIC_MAX_SLOTS_FREE ?? "20");
     const usedSlots = slots.filter(Boolean).length;
@@ -54,11 +55,11 @@ export function LoadModal({ visible, onClose, slots, currentSlot, currentQuantit
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
             <Pressable style={styles.modalOverlay} onPress={onClose}>
-                <Pressable style={styles.modalSheet}>
-                    <View style={styles.modalHandle} />
-                    <Text style={styles.modalTitle}>Carregar Conferência</Text>
+                <Pressable style={[styles.modalSheet, solMode && sol.modalSheet]}>
+                    <View style={[styles.modalHandle, solMode && sol.modalHandle]} />
+                    <Text style={[styles.modalTitle, solMode && sol.modalTitle]}>Carregar Conferência</Text>
                     <View style={styles.counterRow}>
-                        <View style={styles.counterBarWrap}>
+                        <View style={[styles.counterBarWrap, solMode && sol.counterBarWrap]}>
                             <View
                                 style={[
                                     styles.counterFill,
@@ -77,7 +78,7 @@ export function LoadModal({ visible, onClose, slots, currentSlot, currentQuantit
 
                         <Text
                             style={[
-                                styles.counterText,
+                                styles.counterText, solMode && sol.counterText,
                                 usedSlots >= MAX_SLOTS_FREE * 0.8 && { color: "#ff9800" },
                                 usedSlots >= MAX_SLOTS_FREE && {
                                     color: "#e53935",
@@ -91,11 +92,11 @@ export function LoadModal({ visible, onClose, slots, currentSlot, currentQuantit
 
                     {/* AVISO DE ALTERAÇÕES NÃO SALVAS */}
                     {hasUnsavedChanges() && (
-                        <View style={styles.warningBox}>
+                        <View style={[styles.warningBox, solMode && sol.warningBox]}>
                             <Ionicons name="warning" size={24} color="#ff9800" />
                             <View style={styles.warningTextContainer}>
-                                <Text style={styles.warningTitle}>Atenção!</Text>
-                                <Text style={styles.warningMessage}>
+                                <Text style={[styles.warningTitle, solMode && sol.warningTitle]}>Atenção!</Text>
+                                <Text style={[styles.warningMessage, solMode && sol.warningMessage]}>
                                     Você tem alterações não salvas. Salve antes de carregar.
                                 </Text>
                             </View>
@@ -117,7 +118,7 @@ export function LoadModal({ visible, onClose, slots, currentSlot, currentQuantit
                     )}
 
                     {slots.every((s) => s === null) ? (
-                        <Text style={styles.emptyText}>Nenhuma conferência salva ainda.</Text>
+                        <Text style={[styles.emptyText, solMode && sol.emptyText]}>Nenhuma conferência salva ainda.</Text>
                     ) : (
                         <ScrollView
                             style={{ maxHeight: 400 }}
@@ -127,9 +128,9 @@ export function LoadModal({ visible, onClose, slots, currentSlot, currentQuantit
                             {slots.map((conf, i) => ({ conf, index: i })).filter(slot => slot.conf).map(({ conf, index }) => (
                                 <View
                                     key={index}
-                                    style={[styles.slotRow, currentSlot === index + 1 && styles.slotRowActive, !conf && styles.slotRowDisabled, hasUnsavedChanges() && styles.slotRowBlocked]}
+                                    style={[styles.slotRow, solMode && sol.slotRow, currentSlot === index + 1 && styles.slotRowActive, solMode && currentSlot === index + 1 && sol.slotRowActive, !conf && styles.slotRowDisabled, hasUnsavedChanges() && styles.slotRowBlocked]}
                                 >
-                                    <View style={[styles.slotBadge, conf ? styles.slotBadgeFull : styles.slotBadgeEmpty]}>
+                                    <View style={[styles.slotBadge, conf ? styles.slotBadgeFull : styles.slotBadgeEmpty, solMode && conf && sol.slotBadgeFull]}>
                                         <Text style={styles.slotBadgeText}>{index + 1}</Text>
                                     </View>
                                     {conf ? (
@@ -140,15 +141,15 @@ export function LoadModal({ visible, onClose, slots, currentSlot, currentQuantit
                                                 onLoadSlot(index);
                                             }}
                                         >
-                                            <Text style={styles.slotName} numberOfLines={1}>{getDisplayName(conf)}</Text>
-                                            <Text style={styles.slotMeta}>
+                                            <Text style={[styles.slotName, solMode && sol.slotName]} numberOfLines={1}>{getDisplayName(conf)}</Text>
+                                            <Text style={[styles.slotMeta, solMode && sol.slotMeta]}>
                                                 {formatDate(conf.date)} · {Object.keys(conf.quantities || {}).filter(k => conf.quantities![k] > 0).length} itens ·{" "}
                                                 {formatWeight(Object.entries(conf.quantities || {}).reduce((s, [_, qty]) => s + qty, 0))} kg
                                             </Text>
                                         </Pressable>
                                     ) : (
                                         <View style={styles.slotInfo}>
-                                            <Text style={styles.slotEmpty}>Slot vazio</Text>
+                                            <Text style={[styles.slotEmpty, solMode && sol.slotEmpty]}>Slot vazio</Text>
                                         </View>
                                     )}
                                     {conf && (
@@ -169,8 +170,8 @@ export function LoadModal({ visible, onClose, slots, currentSlot, currentQuantit
                         </ScrollView>
                     )}
 
-                    <TouchableOpacity style={styles.modalCloseButton} onPress={onClose}>
-                        <Text style={styles.modalCloseText}>Fechar</Text>
+                    <TouchableOpacity style={[styles.modalCloseButton, solMode && sol.modalCloseButton]} onPress={onClose}>
+                        <Text style={[styles.modalCloseText, solMode && sol.modalCloseText]}>Fechar</Text>
                     </TouchableOpacity>
                 </Pressable>
             </Pressable>
@@ -211,4 +212,25 @@ const styles = StyleSheet.create({
     counterBarWrap: { flex: 1, height: 4, borderRadius: 99, backgroundColor: "#f0f0f0", overflow: "hidden" },
     counterFill: { height: "100%", borderRadius: 99 },
     counterText: { fontSize: 11, fontWeight: "600", color: LABEL_COLOR, minWidth: 56, textAlign: "right" },
+});
+
+// ─── Modo sol (SÓ cores) ───
+const sol = StyleSheet.create({
+    modalSheet: { backgroundColor: "#000", borderTopWidth: 1, borderColor: "#ff0" },
+    modalHandle: { backgroundColor: "#555" },
+    modalTitle: { color: "#fff" },
+    warningBox: { backgroundColor: "#1c1c00", borderColor: "#ff0" },
+    warningTitle: { color: "#ff0" },
+    warningMessage: { color: "#ddd" },
+    emptyText: { color: "#ddd" },
+    slotRow: { borderBottomColor: "#444" },
+    slotRowActive: { backgroundColor: "#1c1c00" },
+    slotBadgeFull: { backgroundColor: "#333", borderWidth: 1, borderColor: "#ff0" },
+    slotName: { color: "#fff" },
+    slotMeta: { color: "#ddd" },
+    slotEmpty: { color: "#ddd" },
+    modalCloseButton: { backgroundColor: "#ff0" },
+    modalCloseText: { color: "#000" },
+    counterBarWrap: { backgroundColor: "#333" },
+    counterText: { color: "#ddd" },
 });

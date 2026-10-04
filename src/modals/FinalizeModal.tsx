@@ -9,6 +9,7 @@ import { formatWeight, formatCurrency, formatPriceInput, parsePriceInput } from 
 interface Props {
     visible: boolean;
     onClose: () => void;
+    solMode?: boolean;
     products: Product[];
     quantities: Record<string, number>;
     totalValue: number;
@@ -16,7 +17,7 @@ interface Props {
     totalQty: number;
 }
 
-export function FinalizeModal({ visible, onClose, products, quantities, totalValue, totalWeight, totalQty }: Props) {
+export function FinalizeModal({ solMode, visible, onClose, products, quantities, totalValue, totalWeight, totalQty }: Props) {
     const [amountReceived, setAmountReceived] = useState("");
 
     // Reset amount received when modal opens
@@ -33,23 +34,23 @@ export function FinalizeModal({ visible, onClose, products, quantities, totalVal
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
             <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} style={styles.modalSheet}>
-                    <View style={styles.modalHandle} />
+                <TouchableOpacity activeOpacity={1} style={[styles.modalSheet, solMode && sol.modalSheet]}>
+                    <View style={[styles.modalHandle, solMode && sol.modalHandle]} />
 
-                    <Text style={styles.modalTitle}>Resumo da Compra</Text>
+                    <Text style={[styles.modalTitle, solMode && sol.modalTitle]}>Resumo da Compra</Text>
 
-                    <View style={styles.summaryContainer}>
+                    <View style={[styles.summaryContainer, solMode && sol.summaryContainer]}>
                         <View style={styles.summaryItem}>
-                            <Text style={styles.summaryLabel}>Itens</Text>
-                            <Text style={styles.summaryValue}>{totalQty}</Text>
+                            <Text style={[styles.summaryLabel, solMode && sol.summaryLabel]}>Itens</Text>
+                            <Text style={[styles.summaryValue, solMode && sol.summaryValue]}>{totalQty}</Text>
                         </View>
                         <View style={styles.summaryItem}>
-                            <Text style={styles.summaryLabel}>Peso Total</Text>
-                            <Text style={styles.summaryValue}>{formatWeight(totalWeight)} kg</Text>
+                            <Text style={[styles.summaryLabel, solMode && sol.summaryLabel]}>Peso Total</Text>
+                            <Text style={[styles.summaryValue, solMode && sol.summaryValue]}>{formatWeight(totalWeight)} kg</Text>
                         </View>
                         <View style={styles.summaryItem}>
-                            <Text style={styles.summaryLabel}>Valor Total</Text>
-                            <Text style={[styles.summaryValue, styles.summaryValueHighlight]}>{formatCurrency(totalValue)}</Text>
+                            <Text style={[styles.summaryLabel, solMode && sol.summaryLabel]}>Valor Total</Text>
+                            <Text style={[styles.summaryValue, solMode && sol.summaryValue, styles.summaryValueHighlight, solMode && sol.summaryValueHighlight]}>{formatCurrency(totalValue)}</Text>
                         </View>
                     </View>
 
@@ -58,18 +59,18 @@ export function FinalizeModal({ visible, onClose, products, quantities, totalVal
                             const qty = quantities[product.id] || 0;
                             const subtotal = qty * product.price;
                             return (
-                                <View key={product.id} style={styles.productRow}>
+                                <View key={product.id} style={[styles.productRow, solMode && sol.productRow]}>
                                     <View style={styles.productInfo}>
-                                        <Text style={styles.productName}>{product.name}</Text>
-                                        <Text style={styles.productPrice}>
+                                        <Text style={[styles.productName, solMode && sol.productName]}>{product.name}</Text>
+                                        <Text style={[styles.productPrice, solMode && sol.productPrice]}>
                                             R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
                                         </Text>
                                     </View>
                                     <View style={styles.productTotals}>
-                                        <Text style={styles.productQty}>
+                                        <Text style={[styles.productQty, solMode && sol.productQty]}>
                                             {product.priceType === 'kg' ? formatWeight(qty) + ' kg' : qty + ' un'}
                                         </Text>
-                                        <Text style={styles.productSubtotal}>
+                                        <Text style={[styles.productSubtotal, solMode && sol.productSubtotal]}>
                                             {formatCurrency(subtotal)}
                                         </Text>
                                     </View>
@@ -79,9 +80,9 @@ export function FinalizeModal({ visible, onClose, products, quantities, totalVal
                     </ScrollView>
 
                     <View style={styles.paymentSection}>
-                        <Text style={styles.paymentLabel}>Valor recebido</Text>
+                        <Text style={[styles.paymentLabel, solMode && sol.paymentLabel]}>Valor recebido</Text>
                         <TextInput
-                            style={styles.paymentInput}
+                            style={[styles.paymentInput, solMode && sol.paymentInput]}
                             value={amountReceived}
                             onChangeText={(text) => setAmountReceived(formatPriceInput(text))}
                             keyboardType="numeric"
@@ -91,18 +92,18 @@ export function FinalizeModal({ visible, onClose, products, quantities, totalVal
                     </View>
 
                     {amountReceived && (
-                        <View style={[styles.changeContainer, change >= 0 ? styles.changeContainerPositive : styles.changeContainerNegative]}>
-                            <Text style={styles.changeLabel}>
+                        <View style={[styles.changeContainer, change >= 0 ? styles.changeContainerPositive : styles.changeContainerNegative, solMode && (change >= 0 ? sol.changeContainerPositive : sol.changeContainerNegative)]}>
+                            <Text style={[styles.changeLabel, solMode && sol.changeLabel]}>
                                 {change >= 0 ? "Troco" : "Falta"}
                             </Text>
-                            <Text style={change >= 0 ? styles.changeValuePositive : styles.changeValueNegative}>
+                            <Text style={[change >= 0 ? styles.changeValuePositive : styles.changeValueNegative, solMode && (change >= 0 ? sol.changeValuePositive : sol.changeValueNegative)]}>
                                 {formatCurrency(Math.abs(change))}
                             </Text>
                         </View>
                     )}
 
-                    <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                        <Text style={styles.closeButtonText}>Fechar</Text>
+                    <TouchableOpacity style={[styles.closeButton, solMode && sol.closeButton]} onPress={onClose}>
+                        <Text style={[styles.closeButtonText, solMode && sol.closeButtonText]}>Fechar</Text>
                     </TouchableOpacity>
                 </TouchableOpacity>
             </TouchableOpacity>
@@ -158,4 +159,29 @@ const styles = StyleSheet.create({
     changeValueNegative: { fontSize: 20, fontWeight: "700", color: "#e53935" },
     closeButton: { backgroundColor: "#f0f0f0", borderRadius: 10, paddingVertical: 14, alignItems: "center", marginTop: 16 },
     closeButtonText: { color: "#555", fontSize: 16, fontWeight: "600" },
+});
+
+// ─── Modo sol (SÓ cores) ───
+const sol = StyleSheet.create({
+    modalSheet: { backgroundColor: "#000", borderTopWidth: 1, borderColor: "#ff0" },
+    modalHandle: { backgroundColor: "#555" },
+    modalTitle: { color: "#fff" },
+    summaryContainer: { backgroundColor: "#222" },
+    summaryLabel: { color: "#ddd" },
+    summaryValue: { color: "#fff" },
+    summaryValueHighlight: { color: "#ff0" },
+    productRow: { borderBottomColor: "#444" },
+    productName: { color: "#fff" },
+    productPrice: { color: "#ddd" },
+    productQty: { color: "#ddd" },
+    productSubtotal: { color: "#ff0" },
+    paymentLabel: { color: "#ddd" },
+    paymentInput: { backgroundColor: "#222", color: "#fff", borderColor: "#ff0" },
+    changeContainerPositive: { backgroundColor: "#1c1c00" },
+    changeContainerNegative: { backgroundColor: "#3b0000" },
+    changeLabel: { color: "#fff" },
+    changeValuePositive: { color: "#ff0" },
+    changeValueNegative: { color: "#ff5252" },
+    closeButton: { backgroundColor: "#333" },
+    closeButtonText: { color: "#fff" },
 });

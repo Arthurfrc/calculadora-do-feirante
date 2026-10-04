@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Keyboard } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-interface Props { visible: boolean; onClose: () => void; customTitle: string; onChangeTitle: (v: string) => void; onQuickSave: () => void; }
+interface Props { visible: boolean; solMode?: boolean; onClose: () => void; customTitle: string; onChangeTitle: (v: string) => void; onQuickSave: () => void; }
 
-export function SaveModal({ visible, onClose, customTitle, onChangeTitle, onQuickSave }: Props) {
+export function SaveModal({ solMode, visible, onClose, customTitle, onChangeTitle, onQuickSave }: Props) {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     useEffect(() => {
@@ -38,24 +38,24 @@ export function SaveModal({ visible, onClose, customTitle, onChangeTitle, onQuic
             >
                 <TouchableOpacity
                     activeOpacity={1}
-                    style={[styles.modalSheet, { marginBottom: keyboardHeight }]}
+                    style={[styles.modalSheet, solMode && sol.modalSheet, { marginBottom: keyboardHeight }]}
                 >
-                    <View style={styles.modalHandle} />
+                    <View style={[styles.modalHandle, solMode && sol.modalHandle]} />
 
-                    <Text style={styles.modalTitle}>
+                    <Text style={[styles.modalTitle, solMode && sol.modalTitle]}>
                         Salvar Conferência
                     </Text>
 
-                    <Text style={styles.description}>
+                    <Text style={[styles.description, solMode && sol.description]}>
                         Informe um título para identificar esta pesagem.
                     </Text>
 
-                    <Text style={styles.inputLabel}>
+                    <Text style={[styles.inputLabel, solMode && sol.inputLabel]}>
                         Título da pesagem
                     </Text>
 
                     <TextInput
-                        style={styles.titleInput}
+                        style={[styles.titleInput, solMode && sol.titleInput]}
                         value={customTitle}
                         onChangeText={onChangeTitle}
                         placeholder="Ex: Carga de seu Zé"
@@ -68,7 +68,7 @@ export function SaveModal({ visible, onClose, customTitle, onChangeTitle, onQuic
 
                     <TouchableOpacity
                         style={[
-                            styles.saveButton,
+                            styles.saveButton, solMode && sol.saveButton,
                             !customTitle.trim() && styles.saveButtonDisabled
                         ]}
                         onPress={handleSave}
@@ -78,10 +78,10 @@ export function SaveModal({ visible, onClose, customTitle, onChangeTitle, onQuic
                         <Ionicons
                             name="save"
                             size={20}
-                            color="#fff"
+                            color={solMode ? "#000" : "#fff"}
                         />
 
-                        <Text style={styles.saveButtonText}>
+                        <Text style={[styles.saveButtonText, solMode && sol.saveButtonText]}>
                             Salvar
                         </Text>
                     </TouchableOpacity>
@@ -90,7 +90,7 @@ export function SaveModal({ visible, onClose, customTitle, onChangeTitle, onQuic
                         style={styles.cancelButton}
                         onPress={onClose}
                     >
-                        <Text style={styles.cancelButtonText}>
+                        <Text style={[styles.cancelButtonText, solMode && sol.cancelButtonText]}>
                             Cancelar
                         </Text>
                     </TouchableOpacity>
@@ -116,4 +116,17 @@ const styles = StyleSheet.create({
     saveButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
     cancelButton: { alignItems: "center", paddingVertical: 14, marginTop: 8 },
     cancelButtonText: { color: "#666", fontSize: 14, fontWeight: "600" }
+});
+
+// ─── Modo sol (SÓ cores) ───
+const sol = StyleSheet.create({
+    modalSheet: { backgroundColor: "#000", borderTopWidth: 1, borderColor: "#ff0" },
+    modalHandle: { backgroundColor: "#555" },
+    modalTitle: { color: "#fff" },
+    description: { color: "#ddd" },
+    inputLabel: { color: "#ddd" },
+    titleInput: { backgroundColor: "#222", color: "#fff", borderColor: "#ff0" },
+    saveButton: { backgroundColor: "#ff0" },
+    saveButtonText: { color: "#000" },
+    cancelButtonText: { color: "#ddd" },
 });

@@ -22,6 +22,7 @@ interface Props {
     config: DialogConfig | null;
     show: (config: DialogConfig) => void;
     dismiss: () => void;
+    solMode?: boolean;
 }
 
 export function useAppDialog() {
@@ -33,7 +34,7 @@ export function useAppDialog() {
     return { config, show, dismiss };
 }
 
-export function AppDialog({ config, show, dismiss }: Props) {
+export function AppDialog({ config, show, dismiss, solMode }: Props) {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
@@ -86,13 +87,13 @@ export function AppDialog({ config, show, dismiss }: Props) {
                 activeOpacity={1}
                 onPress={handleCancel}
             >
-                <TouchableOpacity activeOpacity={1} style={styles.dialog}>
+                <TouchableOpacity activeOpacity={1} style={[styles.dialog, solMode && sol.dialog]}>
                     <View style={styles.iconContainer}>
                         {getIcon()}
                     </View>
 
-                    <Text style={styles.title}>{config.title}</Text>
-                    <Text style={styles.message}>{config.message}</Text>
+                    <Text style={[styles.title, solMode && sol.title]}>{config.title}</Text>
+                    <Text style={[styles.message, solMode && sol.message]}>{config.message}</Text>
 
                     <View style={styles.buttonContainer}>
                         {config.middleLabel && (
@@ -106,10 +107,10 @@ export function AppDialog({ config, show, dismiss }: Props) {
 
                         {config.cancelLabel && (
                             <TouchableOpacity
-                                style={[styles.button, styles.cancelButton]}
+                                style={[styles.button, styles.cancelButton, solMode && sol.cancelButton]}
                                 onPress={handleCancel}
                             >
-                                <Text style={styles.cancelButtonText}>{config.cancelLabel}</Text>
+                                <Text style={[styles.cancelButtonText, solMode && sol.cancelButtonText]}>{config.cancelLabel}</Text>
                             </TouchableOpacity>
                         )}
 
@@ -191,4 +192,13 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "600",
     },
+});
+
+// ─── Modo sol (SÓ cores) ───
+const sol = StyleSheet.create({
+    dialog: { backgroundColor: "#000", borderWidth: 1, borderColor: "#ff0" },
+    title: { color: "#fff" },
+    message: { color: "#ddd" },
+    cancelButton: { backgroundColor: "#333" },
+    cancelButtonText: { color: "#fff" },
 });

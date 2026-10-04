@@ -8,6 +8,7 @@ import { formatPriceInput, parsePriceInput } from "../utils/formatters";
 
 interface Props {
     visible: boolean;
+    solMode?: boolean;
     onClose: () => void;
     products: Product[];
     onAddProduct: (product: Omit<Product, 'id' | 'createdAt'>) => Promise<Product>;
@@ -15,7 +16,7 @@ interface Props {
     onDeleteProduct: (id: string) => Promise<void>;
 }
 
-export function ProductsModal({ visible, onClose, products, onAddProduct, onUpdateProduct, onDeleteProduct }: Props) {
+export function ProductsModal({ solMode, visible, onClose, products, onAddProduct, onUpdateProduct, onDeleteProduct }: Props) {
     const [isEditing, setIsEditing] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [name, setName] = useState("");
@@ -103,22 +104,22 @@ export function ProductsModal({ visible, onClose, products, onAddProduct, onUpda
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
             <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} style={styles.modalSheet}>
-                    <View style={styles.modalHandle} />
+                <TouchableOpacity activeOpacity={1} style={[styles.modalSheet, solMode && sol.modalSheet]}>
+                    <View style={[styles.modalHandle, solMode && sol.modalHandle]} />
 
                     {isEditing ? (
                         <>
                             <TouchableOpacity onPress={handleCancelEdit} style={styles.backButton}>
-                                <Ionicons name="arrow-back" size={20} color="#555" />
-                                <Text style={styles.backButtonText}>Voltar</Text>
+                                <Ionicons name="arrow-back" size={20} color={solMode ? "#fff" : "#555"} />
+                                <Text style={[styles.backButtonText, solMode && sol.backButtonText]}>Voltar</Text>
                             </TouchableOpacity>
-                            <Text style={styles.modalTitle}>
+                            <Text style={[styles.modalTitle, solMode && sol.modalTitle]}>
                                 {editingProduct ? "Editar Produto" : "Novo Produto"}
                             </Text>
 
-                            <Text style={styles.inputLabel}>Nome do produto</Text>
+                            <Text style={[styles.inputLabel, solMode && sol.inputLabel]}>Nome do produto</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, solMode && sol.input]}
                                 value={name}
                                 onChangeText={setName}
                                 placeholder="Ex: Tomate"
@@ -126,9 +127,9 @@ export function ProductsModal({ visible, onClose, products, onAddProduct, onUpda
                                 maxLength={40}
                             />
 
-                            <Text style={styles.inputLabel}>Preço (R$)</Text>
+                            <Text style={[styles.inputLabel, solMode && sol.inputLabel]}>Preço (R$)</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, solMode && sol.input]}
                                 value={price}
                                 onChangeText={(t) => setPrice(formatPriceInput(t))}
                                 placeholder="0,00"
@@ -136,32 +137,32 @@ export function ProductsModal({ visible, onClose, products, onAddProduct, onUpda
                                 keyboardType="numeric"
                             />
 
-                            <Text style={styles.inputLabel}>Tipo de venda</Text>
+                            <Text style={[styles.inputLabel, solMode && sol.inputLabel]}>Tipo de venda</Text>
                             <View style={styles.typeSelector}>
                                 <TouchableOpacity
-                                    style={[styles.typeButton, priceType === "kg" && styles.typeButtonActive]}
+                                    style={[styles.typeButton, solMode && sol.typeButton, priceType === "kg" && styles.typeButtonActive]}
                                     onPress={() => setPriceType("kg")}
                                 >
                                     <Ionicons
                                         name="scale"
                                         size={20}
-                                        color={priceType === "kg" ? "#fff" : "#666"}
+                                        color={priceType === "kg" ? "#fff" : (solMode ? "#ddd" : "#666")}
                                     />
-                                    <Text style={[styles.typeButtonText, priceType === "kg" && styles.typeButtonTextActive]}>
+                                    <Text style={[styles.typeButtonText, solMode && sol.typeButtonText, priceType === "kg" && styles.typeButtonTextActive]}>
                                         Por kg
                                     </Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={[styles.typeButton, priceType === "unit" && styles.typeButtonActive]}
+                                    style={[styles.typeButton, solMode && sol.typeButton, priceType === "unit" && styles.typeButtonActive]}
                                     onPress={() => setPriceType("unit")}
                                 >
                                     <Ionicons
                                         name="cube"
                                         size={20}
-                                        color={priceType === "unit" ? "#fff" : "#666"}
+                                        color={priceType === "unit" ? "#fff" : (solMode ? "#ddd" : "#666")}
                                     />
-                                    <Text style={[styles.typeButtonText, priceType === "unit" && styles.typeButtonTextActive]}>
+                                    <Text style={[styles.typeButtonText, solMode && sol.typeButtonText, priceType === "unit" && styles.typeButtonTextActive]}>
                                         Por unidade
                                     </Text>
                                 </TouchableOpacity>
@@ -179,7 +180,7 @@ export function ProductsModal({ visible, onClose, products, onAddProduct, onUpda
                         </>
                     ) : (
                         <>
-                            <Text style={styles.modalTitle}>Catálogo de Produtos</Text>
+                            <Text style={[styles.modalTitle, solMode && sol.modalTitle]}>Catálogo de Produtos</Text>
 
                             <TouchableOpacity
                                 style={styles.addButton}
@@ -191,13 +192,13 @@ export function ProductsModal({ visible, onClose, products, onAddProduct, onUpda
 
                             <ScrollView style={styles.productsList}>
                                 {products.length === 0 ? (
-                                    <Text style={styles.emptyText}>Nenhum produto cadastrado.</Text>
+                                    <Text style={[styles.emptyText, solMode && sol.emptyText]}>Nenhum produto cadastrado.</Text>
                                 ) : (
                                     products.map((product) => (
-                                        <View key={product.id} style={styles.productRow}>
+                                        <View key={product.id} style={[styles.productRow, solMode && sol.productRow]}>
                                             <View style={styles.productInfo}>
-                                                <Text style={styles.productName}>{product.name}</Text>
-                                                <Text style={styles.productPrice}>
+                                                <Text style={[styles.productName, solMode && sol.productName]}>{product.name}</Text>
+                                                <Text style={[styles.productPrice, solMode && sol.productPrice]}>
                                                     R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
                                                 </Text>
                                             </View>
@@ -222,8 +223,8 @@ export function ProductsModal({ visible, onClose, products, onAddProduct, onUpda
                         </>
                     )}
 
-                    <TouchableOpacity style={styles.modalCloseButton} onPress={onClose}>
-                        <Text style={styles.modalCloseText}>Fechar</Text>
+                    <TouchableOpacity style={[styles.modalCloseButton, solMode && sol.modalCloseButton]} onPress={onClose}>
+                        <Text style={[styles.modalCloseText, solMode && sol.modalCloseText]}>Fechar</Text>
                     </TouchableOpacity>
                 </TouchableOpacity>
             </TouchableOpacity>
@@ -262,4 +263,22 @@ const styles = StyleSheet.create({
     actionButton: { padding: 8 },
     modalCloseButton: { backgroundColor: "#f0f0f0", borderRadius: 10, paddingVertical: 14, alignItems: "center", marginTop: 16 },
     modalCloseText: { color: "#555", fontSize: 16, fontWeight: "600" },
+});
+
+// ─── Modo sol (SÓ cores) ───
+const sol = StyleSheet.create({
+    modalSheet: { backgroundColor: "#000", borderTopWidth: 1, borderColor: "#ff0" },
+    modalHandle: { backgroundColor: "#555" },
+    modalTitle: { color: "#fff" },
+    modalCloseButton: { backgroundColor: "#333" },
+    modalCloseText: { color: "#fff" },
+    backButtonText: { color: "#fff" },
+    inputLabel: { color: "#ddd" },
+    input: { backgroundColor: "#222", color: "#fff", borderColor: "#ff0" },
+    typeButton: { backgroundColor: "#222", borderColor: "#555" },
+    typeButtonText: { color: "#ddd" },
+    productRow: { borderBottomColor: "#444" },
+    productName: { color: "#fff" },
+    productPrice: { color: "#ddd" },
+    emptyText: { color: "#ddd" },
 });
