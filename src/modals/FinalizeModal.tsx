@@ -1,14 +1,16 @@
 // src/modals/FinalizeModal.tsx
 
-import React, { useState } from "react";
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Platform } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Platform, Keyboard } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Product } from "../types";
 import { formatWeight, formatCurrency, formatPriceInput, parsePriceInput } from "../utils/formatters";
+import { AppDialog, useAppDialog } from "../components/AppDialog";
 
 interface Props {
     visible: boolean;
     onClose: () => void;
+    onNovaVenda: () => void;
     solMode?: boolean;
     products: Product[];
     quantities: Record<string, number>;
@@ -17,11 +19,30 @@ interface Props {
     totalQty: number;
 }
 
-export function FinalizeModal({ solMode, visible, onClose, products, quantities, totalValue, totalWeight, totalQty }: Props) {
+export function FinalizeModal({ solMode, visible, onClose, onNovaVenda, products, quantities, totalValue, totalWeight, totalQty }: Props) {
     const [amountReceived, setAmountReceived] = useState("");
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const { config: dialogConfig, show: showDialog, dismiss: dismissDialog } = useAppDialog();
+
+    const handleNovaVenda = () => {
+        showDialog({
+            title: "Iniciar nova venda?",
+            message: "Todas as quantidades serão zeradas. Essa ação não pode ser desfeita.",
+            variant: "destructive",
+            confirmLabel: "Zerar",
+            cancelLabel: "Cancelar",
+            onConfirm: () => { onClose(); onNovaVenda(); },
+        });
+    };
+
+    useEffect(() => {
+        const show = Keyboard.addListener("keyboardDidShow", e => { setKeyboardHeight(e.endCoordinates.height); });
+        const hide = Keyboard.addListener("keyboardDidHide", () => { setKeyboardHeight(0); });
+        return () => { show.remove(); hide.remove(); };
+    }, []);
 
     // Reset amount received when modal opens
-    React.useEffect(() => {
+    useEffect(() => {
         if (visible) {
             setAmountReceived("");
         }
@@ -34,7 +55,7 @@ export function FinalizeModal({ solMode, visible, onClose, products, quantities,
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
             <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} style={[styles.modalSheet, solMode && sol.modalSheet]}>
+                <TouchableOpacity activeOpacity={1} style={[styles.modalSheet, solMode && sol.modalSheet, { marginBottom: keyboardHeight }]}>
                     <View style={[styles.modalHandle, solMode && sol.modalHandle]} />
 
                     <Text style={[styles.modalTitle, solMode && sol.modalTitle]}>Resumo da Compra</Text>
@@ -54,7 +75,7 @@ export function FinalizeModal({ solMode, visible, onClose, products, quantities,
                         </View>
                     </View>
 
-                    <ScrollView style={styles.productsList}>
+                    <ScrollView style={[styles.productsList, keyboardHeight > 0 && { maxHeight: 120 }]}>
                         {activeProducts.map((product) => {
                             const qty = quantities[product.id] || 0;
                             const subtotal = qty * product.price;
@@ -102,11 +123,19 @@ export function FinalizeModal({ solMode, visible, onClose, products, quantities,
                         </View>
                     )}
 
-                    <TouchableOpacity style={[styles.closeButton, solMode && sol.closeButton]} onPress={onClose}>
-                        <Text style={[styles.closeButtonText, solMode && sol.closeButtonText]}>Fechar</Text>
-                    </TouchableOpacity>
+                    <View style={styles.buttonsRow}>
+                        <TouchableOpacity style={[styles.closeButton, solMode && sol.closeButton]} onPress={onClose} activeOpacity={0.85}>
+                            <Ionicons name="close-circle" size={20} color={solMode ? "#000" : "#555"} />
+                            <Text style={[styles.closeButtonText, solMode && sol.closeButtonText]}>Fechar Resumo</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.zeroButton, solMode && sol.zeroButton]} onPress={handleNovaVenda} activeOpacity={0.85}>
+                            <Ionicons name="refresh" size={20} color="#e53935" />
+                            <Text style={[styles.zeroButtonText, solMode && sol.zeroText]}>Nova Venda</Text>
+                        </TouchableOpacity>
+                    </View>
                 </TouchableOpacity>
             </TouchableOpacity>
+            <AppDialog solMode={solMode} config={dialogConfig} show={showDialog} dismiss={dismissDialog} />
         </Modal>
     );
 }
@@ -157,8 +186,11 @@ const styles = StyleSheet.create({
     changeLabel: { fontSize: 16, fontWeight: "600" },
     changeValuePositive: { fontSize: 20, fontWeight: "700", color: "#2e7d32" },
     changeValueNegative: { fontSize: 20, fontWeight: "700", color: "#e53935" },
-    closeButton: { backgroundColor: "#f0f0f0", borderRadius: 10, paddingVertical: 14, alignItems: "center", marginTop: 16 },
-    closeButtonText: { color: "#555", fontSize: 16, fontWeight: "600" },
+    buttonsRow: { flexDirection: "row", gap: 10, marginTop: 16 },
+    closeButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#f0f0f0", paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8 },
+    closeButtonText: { color: "#555", fontSize: 15, fontWeight: "700" },
+    zeroButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#ffebee", paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: "#ffcdd2" },
+    zeroButtonText: { fontSize: 15, fontWeight: "700", color: "#e53935" },
 });
 
 // ─── Modo sol (SÓ cores) ───
@@ -182,6 +214,8 @@ const sol = StyleSheet.create({
     changeLabel: { color: "#fff" },
     changeValuePositive: { color: "#ff0" },
     changeValueNegative: { color: "#ff5252" },
-    closeButton: { backgroundColor: "#333" },
-    closeButtonText: { color: "#fff" },
+    closeButton: { backgroundColor: "#ff0" },
+    closeButtonText: { color: "#000" },
+    zeroButton: { backgroundColor: "#000", borderColor: "#e53935" },
+    zeroText: { color: "#ff5252" },
 });

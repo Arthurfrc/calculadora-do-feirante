@@ -60,7 +60,7 @@ export default function App() {
   // const { isPremium, customerInfo, loadCustomerInfo } = usePurchases();
   const isPremium = false; // Temporariamente desativado para desenvolvimento
   const customerInfo = null;
-  const loadCustomerInfo = () => {};
+  const loadCustomerInfo = () => { };
 
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
 
@@ -199,7 +199,7 @@ export default function App() {
 
   const handleZeroAll = useCallback(() => {
     showDialog({
-      title: "Zerar quantidades?",
+      title: "Iniciar nova venda?",
       message: "Todas as quantidades serão zeradas. Essa ação não pode ser desfeita.",
       variant: "destructive",
       confirmLabel: "Zerar",
@@ -309,6 +309,18 @@ export default function App() {
     if (!conf) return;
     setQuantities(conf.quantities || {});
     setCustomTitle(conf.customTitle || "");
+    const newQuantityInputs: Record<string, string> = {};
+    Object.entries(conf.quantities || {}).forEach(([productId, qty]) => {
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        if (product.priceType === 'kg') {
+          newQuantityInputs[productId] = formatWeightInput(qty.toString());
+        } else {
+          newQuantityInputs[productId] = qty.toString();
+        }
+      }
+    });
+    setQuantityInputs(newQuantityInputs);
     setCurrentSlot(slotIndex + 1);
     setShowLoadModal(false);
     showToast(`Slot ${slotIndex + 1} carregado!`);
@@ -485,8 +497,17 @@ export default function App() {
                 <Text style={[styles.statLabel, solMode && sol.text]}>PRODUTOS</Text>
                 <Text style={[styles.statValue, solMode && sol.text]}>{totalQty}</Text>
               </View>
+              <TouchableOpacity
+                style={[styles.finalizeButton, solMode && sol.finalize]}
+                onPress={() => setShowFinalizeModal(true)}
+                activeOpacity={0.85}
+                disabled={activeProducts.length === 0}
+              >
+                <Ionicons name="checkmark-circle" size={20} color={solMode ? "#000" : "#fff"} />
+                <Text style={[styles.finalizeButtonText, solMode && sol.finalizeText]}>Finalizar</Text>
+              </TouchableOpacity>
               <View style={[styles.statBlock, styles.statBlockRight]}>
-                <Text style={[styles.statLabel, solMode && sol.text]}>VALOR TOTAL</Text>
+                <Text style={[styles.statLabel, solMode && sol.text]}>À RECEBER</Text>
                 <Text style={[styles.statValue, solMode && sol.yellow]}>{formatCurrency(totalValue)}</Text>
               </View>
             </View>
@@ -494,24 +515,24 @@ export default function App() {
             <View style={[styles.divider, solMode && sol.divider]} />
           </View>
 
-          {activeProducts.length > 0 && !isPremium && (
+          {!isPremium && (
             <View style={[styles.counterRow, solMode && sol.counterRow]}>
               <View style={styles.counterBarWrap}>
                 <View style={[styles.counterFill, {
-                  width: `${Math.min((activeProducts.length / MAX_ITENS_FREE) * 100, 100)}%` as any,
+                  width: `${Math.min((products.length / MAX_ITENS_FREE) * 100, 100)}%` as any,
                   backgroundColor:
-                    activeProducts.length >= MAX_ITENS_FREE ? "#e53935"
-                      : activeProducts.length >= MAX_ITENS_FREE * 0.8 ? "#ff9800"
+                    products.length >= MAX_ITENS_FREE ? "#e53935"
+                      : products.length >= MAX_ITENS_FREE * 0.8 ? "#ff9800"
                         : "#509AE2",
                 }]} />
               </View>
               <Text style={[
                 styles.counterText,
                 solMode && sol.text,
-                activeProducts.length >= MAX_ITENS_FREE * 0.8 && { color: "#ff9800" },
-                activeProducts.length >= MAX_ITENS_FREE && { color: "#e53935", fontWeight: "700" },
+                products.length >= MAX_ITENS_FREE * 0.8 && { color: "#ff9800" },
+                products.length >= MAX_ITENS_FREE && { color: "#e53935", fontWeight: "700" },
               ]}>
-                {activeProducts.length}/{MAX_ITENS_FREE} itens
+                {products.length}/{MAX_ITENS_FREE} itens
               </Text>
             </View>
           )}
@@ -574,29 +595,19 @@ export default function App() {
               </>
             )}
           </ScrollView>
-
-          {/* ── Bottom bar ── */}
-          <View style={[styles.bottomBar, solMode && sol.bottomBar]}>
-            <TouchableOpacity
-              style={[styles.zeroButton, solMode && sol.zeroButton]}
-              onPress={handleZeroAll}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="refresh" size={20} color="#e53935" />
-              <Text style={[styles.zeroButtonText, solMode && sol.zeroText]}>Zerar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.finalizeButton, solMode && sol.finalize]}
-              onPress={() => setShowFinalizeModal(true)}
-              activeOpacity={0.85}
-              disabled={activeProducts.length === 0}
-            >
-              <Ionicons name="checkmark-circle" size={20} color={solMode ? "#000" : "#fff"} />
-              <Text style={[styles.finalizeButtonText, solMode && sol.finalizeText]}>Finalizar</Text>
-            </TouchableOpacity>
-          </View>
         </KeyboardAvoidingView>
+
+        {/* ── Bottom bar ── */}
+        <View style={[styles.bottomBar, solMode && sol.bottomBar]}>
+          <TouchableOpacity
+            style={[styles.zeroButton, solMode && sol.zeroButton]}
+            onPress={handleZeroAll}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="refresh" size={20} color="#e53935" />
+            <Text style={[styles.zeroButtonText, solMode && sol.zeroText]}>Nova Venda</Text>
+          </TouchableOpacity>
+        </View>
 
         <Toast message={toastMessage} visible={toastVisible} />
         {/* ════════════ BANNER DE RODAPÉ ════════════ */}
@@ -665,6 +676,7 @@ export default function App() {
           loadCustomerInfo();
         }}
         customerInfo={customerInfo}
+        solMode={solMode}
       />
 
       {/* ════════════ APP DIALOG (substitui Alert.alert) ════════════ */}
@@ -686,6 +698,10 @@ export default function App() {
         visible={showFinalizeModal}
         solMode={solMode}
         onClose={() => setShowFinalizeModal(false)}
+        onNovaVenda={() => {
+          setQuantities({});
+          setQuantityInputs({});
+        }}
         products={products}
         quantities={quantities}
         totalValue={totalValue}
@@ -792,19 +808,19 @@ const styles = StyleSheet.create({
   itemRow: { flexDirection: "row", backgroundColor: "#fff", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
   itemRowActive: { backgroundColor: "#f0f9ff" },
   itemMain: { flex: 1, justifyContent: "center" },
-  itemName: { fontSize: 16, fontWeight: "700", color: "#1a1a1a", marginBottom: 4 },
+  itemName: { fontSize: 20, fontWeight: "700", color: "#1a1a1a", marginBottom: 4 },
   itemDetails: { flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" },
-  itemDetail: { fontSize: 12, color: "#666", fontWeight: "500" },
-  itemSubtotal: { fontSize: 13, fontWeight: "700", color: GREEN },
+  itemDetail: { fontSize: 20, color: "#666", fontWeight: "500" },
+  itemSubtotal: { fontSize: 20, fontWeight: "700", color: GREEN },
   itemActions: { alignItems: "center", gap: 8, paddingLeft: 8 },
   qtyInputList: {
-    width: 60,
+    width: 100,
     borderWidth: 1.5,
     borderColor: "#2196f3",
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 8,
-    fontSize: 16,
+    fontSize: 20,
     color: "#1a1a1a",
     backgroundColor: "#fff",
     textAlign: "center",
@@ -813,13 +829,14 @@ const styles = StyleSheet.create({
   counterRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", paddingHorizontal: 16, paddingVertical: 6, gap: 10, borderBottomWidth: 1, borderBottomColor: BORDER_COLOR },
   counterBarWrap: { flex: 1, height: 4, borderRadius: 99, backgroundColor: "#f0f0f0", overflow: "hidden" },
   counterFill: { height: "100%", borderRadius: 99 },
-  counterText: { fontSize: 11, fontWeight: "600", color: LABEL_COLOR, minWidth: 56, textAlign: "right" },
+  counterText: { fontSize: 12, fontWeight: "600", color: LABEL_COLOR, minWidth: 56, textAlign: "right" },
 
   // ── Bottom bar ──
   bottomBar: {
     flexDirection: "row", alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: BORDER_COLOR,
-    paddingHorizontal: 12, paddingVertical: 10, gap: 10, marginBottom: 50,
+    paddingHorizontal: 12, paddingVertical: 10, gap: 10, marginBottom: 10,
   },
   zeroButton: {
     flexDirection: "row",
@@ -838,14 +855,14 @@ const styles = StyleSheet.create({
     color: "#e53935",
   },
   finalizeButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
     backgroundColor: "#2e7d32",
     borderRadius: 8,
-    paddingVertical: Platform.OS === "ios" ? 14 : 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   finalizeButtonDisabled: { opacity: 0.5 },
   finalizeButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },

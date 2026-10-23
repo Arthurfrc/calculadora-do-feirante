@@ -1,8 +1,7 @@
 // src/modals/QuickProductModal.tsx
 
 import React, { useState, useEffect } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Keyboard } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from "react-native"; import { Ionicons } from "@expo/vector-icons";
 import { PriceType } from "../types";
 import { formatPriceInput, parsePriceInput } from "../utils/formatters";
 
@@ -17,21 +16,10 @@ export function QuickProductModal({ visible, onClose, onSave, initialName = "" }
     const [name, setName] = useState(initialName);
     const [price, setPrice] = useState("");
     const [priceType, setPriceType] = useState<PriceType>("kg");
-    const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     useEffect(() => {
         setName(initialName);
     }, [initialName]);
-
-    useEffect(() => {
-        const show = Keyboard.addListener('keyboardDidShow', e =>
-            setKeyboardHeight(e.endCoordinates.height)
-        );
-        const hide = Keyboard.addListener('keyboardDidHide', () =>
-            setKeyboardHeight(0)
-        );
-        return () => { show.remove(); hide.remove(); };
-    }, []);
 
     const handleSave = () => {
         if (!name.trim() || !price) return;
@@ -59,116 +47,122 @@ export function QuickProductModal({ visible, onClose, onSave, initialName = "" }
             animationType="slide"
             onRequestClose={onClose}
         >
-            <TouchableOpacity
-                style={styles.modalOverlay}
-                activeOpacity={1}
-                onPress={onClose}
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior="padding"
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 80}
             >
                 <TouchableOpacity
+                    style={styles.modalOverlay}
                     activeOpacity={1}
-                    style={[styles.modalSheet, { marginBottom: keyboardHeight }]}
+                    onPress={onClose}
                 >
-                    <View style={styles.modalHandle} />
-
-                    <Text style={styles.modalTitle}>
-                        Cadastrar Produto
-                    </Text>
-
-                    <Text style={styles.description}>
-                        Preencha os dados do produto para adicionar ao catálogo.
-                    </Text>
-
-                    <Text style={styles.inputLabel}>
-                        Nome do produto
-                    </Text>
-
-                    <TextInput
-                        style={styles.input}
-                        value={name}
-                        onChangeText={setName}
-                        placeholder="Ex: Tomate"
-                        placeholderTextColor="#bbb"
-                        maxLength={40}
-                        autoFocus
-                        returnKeyType="next"
-                    />
-
-                    <Text style={styles.inputLabel}>
-                        Preço (R$)
-                    </Text>
-
-                    <TextInput
-                        style={styles.input}
-                        value={price}
-                        onChangeText={(t) => setPrice(formatPriceInput(t))}
-                        placeholder="0,00"
-                        placeholderTextColor="#bbb"
-                        keyboardType="numeric"
-                        returnKeyType="next"
-                    />
-
-                    <Text style={styles.inputLabel}>
-                        Tipo de venda
-                    </Text>
-
-                    <View style={styles.typeSelector}>
-                        <TouchableOpacity
-                            style={[styles.typeButton, priceType === "kg" && styles.typeButtonActive]}
-                            onPress={() => setPriceType("kg")}
-                        >
-                            <Ionicons
-                                name="scale"
-                                size={20}
-                                color={priceType === "kg" ? "#fff" : "#666"}
-                            />
-                            <Text style={[styles.typeButtonText, priceType === "kg" && styles.typeButtonTextActive]}>
-                                Por kg
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.typeButton, priceType === "unit" && styles.typeButtonActive]}
-                            onPress={() => setPriceType("unit")}
-                        >
-                            <Ionicons
-                                name="cube"
-                                size={20}
-                                color={priceType === "unit" ? "#fff" : "#666"}
-                            />
-                            <Text style={[styles.typeButtonText, priceType === "unit" && styles.typeButtonTextActive]}>
-                                Por unidade
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
                     <TouchableOpacity
-                        style={[styles.saveButton, !isValid && styles.saveButtonDisabled]}
-                        onPress={handleSave}
-                        activeOpacity={0.8}
-                        disabled={!isValid}
+                        activeOpacity={1}
+                        style={styles.modalSheet}
                     >
-                        <Ionicons
-                            name="checkmark-circle"
-                            size={20}
-                            color="#fff"
+                        <View style={styles.modalHandle} />
+
+                        <Text style={styles.modalTitle}>
+                            Cadastrar Produto
+                        </Text>
+
+                        <Text style={styles.description}>
+                            Preencha os dados do produto para adicionar ao catálogo.
+                        </Text>
+
+                        <Text style={styles.inputLabel}>
+                            Nome do produto
+                        </Text>
+
+                        <TextInput
+                            style={styles.input}
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="Ex: Tomate"
+                            placeholderTextColor="#bbb"
+                            maxLength={40}
+                            autoFocus
+                            returnKeyType="next"
                         />
 
-                        <Text style={styles.saveButtonText}>
-                            Cadastrar e Adicionar
+                        <Text style={styles.inputLabel}>
+                            Preço (R$)
                         </Text>
-                    </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={onClose}
-                    >
-                        <Text style={styles.cancelButtonText}>
-                            Cancelar
+                        <TextInput
+                            style={styles.input}
+                            value={price}
+                            onChangeText={(t) => setPrice(formatPriceInput(t))}
+                            placeholder="0,00"
+                            placeholderTextColor="#bbb"
+                            keyboardType="numeric"
+                            returnKeyType="next"
+                        />
+
+                        <Text style={styles.inputLabel}>
+                            Tipo de venda
                         </Text>
-                    </TouchableOpacity>
 
+                        <View style={styles.typeSelector}>
+                            <TouchableOpacity
+                                style={[styles.typeButton, priceType === "kg" && styles.typeButtonActive]}
+                                onPress={() => setPriceType("kg")}
+                            >
+                                <Ionicons
+                                    name="scale"
+                                    size={20}
+                                    color={priceType === "kg" ? "#fff" : "#666"}
+                                />
+                                <Text style={[styles.typeButtonText, priceType === "kg" && styles.typeButtonTextActive]}>
+                                    Por kg
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.typeButton, priceType === "unit" && styles.typeButtonActive]}
+                                onPress={() => setPriceType("unit")}
+                            >
+                                <Ionicons
+                                    name="cube"
+                                    size={20}
+                                    color={priceType === "unit" ? "#fff" : "#666"}
+                                />
+                                <Text style={[styles.typeButtonText, priceType === "unit" && styles.typeButtonTextActive]}>
+                                    Por unidade
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.saveButton, !isValid && styles.saveButtonDisabled]}
+                            onPress={handleSave}
+                            activeOpacity={0.8}
+                            disabled={!isValid}
+                        >
+                            <Ionicons
+                                name="checkmark-circle"
+                                size={20}
+                                color="#fff"
+                            />
+
+                            <Text style={styles.saveButtonText}>
+                                Cadastrar e Adicionar
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={onClose}
+                        >
+                            <Text style={styles.cancelButtonText}>
+                                Cancelar
+                            </Text>
+                        </TouchableOpacity>
+
+                    </TouchableOpacity>
                 </TouchableOpacity>
-            </TouchableOpacity>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }

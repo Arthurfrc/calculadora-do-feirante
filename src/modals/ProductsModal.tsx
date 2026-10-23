@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Product, PriceType } from "../types";
-import { formatPriceInput, parsePriceInput } from "../utils/formatters";
+import { parsePriceInput } from "../utils/formatters";
+import { PriceInputModal } from "./PriceInputModal";
 
 interface Props {
     visible: boolean;
@@ -22,10 +23,12 @@ export function ProductsModal({ solMode, visible, onClose, products, onAddProduc
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
     const [priceType, setPriceType] = useState<PriceType>("kg");
+    const [showPriceModal, setShowPriceModal] = useState(false);
 
     // Reset state when modal closes
     React.useEffect(() => {
         if (!visible) {
+            setShowPriceModal(false);
             setIsEditing(false);
             setEditingProduct(null);
             setName("");
@@ -128,14 +131,15 @@ export function ProductsModal({ solMode, visible, onClose, products, onAddProduc
                             />
 
                             <Text style={[styles.inputLabel, solMode && sol.inputLabel]}>Preço (R$)</Text>
-                            <TextInput
+                            <TouchableOpacity
                                 style={[styles.input, solMode && sol.input]}
-                                value={price}
-                                onChangeText={(t) => setPrice(formatPriceInput(t))}
-                                placeholder="0,00"
-                                placeholderTextColor="#bbb"
-                                keyboardType="numeric"
-                            />
+                                onPress={() => setShowPriceModal(true)}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={[styles.priceText, solMode && sol.priceText, !price && styles.pricePlaceholder]}>
+                                    {price || "0,00"}
+                                </Text>
+                            </TouchableOpacity>
 
                             <Text style={[styles.inputLabel, solMode && sol.inputLabel]}>Tipo de venda</Text>
                             <View style={styles.typeSelector}>
@@ -228,6 +232,13 @@ export function ProductsModal({ solMode, visible, onClose, products, onAddProduc
                     </TouchableOpacity>
                 </TouchableOpacity>
             </TouchableOpacity>
+            <PriceInputModal
+                visible={showPriceModal}
+                value={price}
+                solMode={solMode}
+                onConfirm={(v) => { setPrice(v); setShowPriceModal(false); }}
+                onClose={() => setShowPriceModal(false)}
+            />
         </Modal>
     );
 }
@@ -243,6 +254,8 @@ const styles = StyleSheet.create({
     backButtonText: { fontSize: 14, color: "#555", marginLeft: 4 },
     inputLabel: { fontSize: 12, fontWeight: "600", color: LABEL_COLOR, letterSpacing: 0.4, marginBottom: 6, marginTop: 12 },
     input: { borderWidth: 1.5, borderColor: "#2196f3", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 12, fontSize: 15, color: "#1a1a1a", fontWeight: "600" },
+    priceText: { fontSize: 15, fontWeight: "600", color: "#1a1a1a" },
+    pricePlaceholder: { color: "#bbb" },
     typeSelector: { flexDirection: "row", gap: 12, marginTop: 4 },
     typeButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 1.5, borderColor: "#ddd", borderRadius: 8, paddingVertical: 12, backgroundColor: "#fafafa" },
     typeButtonActive: { backgroundColor: "#2196f3", borderColor: "#2196f3" },
@@ -275,6 +288,7 @@ const sol = StyleSheet.create({
     backButtonText: { color: "#fff" },
     inputLabel: { color: "#ddd" },
     input: { backgroundColor: "#222", color: "#fff", borderColor: "#ff0" },
+    priceText: { color: "#fff" },
     typeButton: { backgroundColor: "#222", borderColor: "#555" },
     typeButtonText: { color: "#ddd" },
     productRow: { borderBottomColor: "#444" },

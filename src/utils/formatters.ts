@@ -20,7 +20,9 @@ export const parsePriceInput = (value: string): number =>
 export const formatWeightInput = (value: string): string => {
     const n = value.replace(/[^\d]/g, "");
     if (!n) return "";
-    return (parseInt(n) / 1000).toLocaleString("pt-BR", {
+    const num = parseInt(n) / 1000;
+    if (num === 0) return "0";
+    return num.toLocaleString("pt-BR", {
         minimumFractionDigits: 3, maximumFractionDigits: 3,
     });
 };

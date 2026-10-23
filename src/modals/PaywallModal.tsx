@@ -99,9 +99,10 @@ type Props = {
     visible: boolean;
     onClose: () => void;
     customerInfo?: CustomerInfo | null;
+    solMode?: boolean;
 };
 
-export function PaywallModal({ visible, onClose, customerInfo }: Props) {
+export function PaywallModal({ visible, onClose, customerInfo, solMode = false }: Props) {
     const [selected, setSelected] = useState<PlanId>("free");
     const [plans, setPlans] = useState([FREE_PLAN]);
     const [packages, setPackages] = useState<PurchasesPackage[]>([]);
@@ -193,7 +194,7 @@ export function PaywallModal({ visible, onClose, customerInfo }: Props) {
 
     return (
         <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-            <SafeAreaView style={styles.container}>
+            <SafeAreaView style={[styles.container, solMode && sol.container]}>
                 <LinearGradient
                     colors={["#509AE2", "#3a7bc8"]}
                     style={styles.headerGradient}
@@ -216,6 +217,7 @@ export function PaywallModal({ visible, onClose, customerInfo }: Props) {
                                 key={plan.id}
                                 style={[
                                     styles.planTab,
+                                    solMode && sol.planTab,
                                     selected === plan.id && {
                                         borderColor: plan.color,
                                         backgroundColor: plan.color + "15",
@@ -259,7 +261,7 @@ export function PaywallModal({ visible, onClose, customerInfo }: Props) {
                         ))}
                     </View>
 
-                    <View style={[styles.planDetail, { borderColor: selectedPlan.color }]}>
+                    <View style={[styles.planDetail, solMode && sol.planDetail, { borderColor: selectedPlan.color }]}>
                         <LinearGradient
                             colors={selectedPlan.gradient as [string, string]}
                             style={styles.planDetailHeader}
@@ -285,13 +287,13 @@ export function PaywallModal({ visible, onClose, customerInfo }: Props) {
                             </View>
                         </LinearGradient>
 
-                        <View style={styles.featuresList}>
+                        <View style={[styles.featuresList, solMode && sol.featuresList]}>
                             {selectedPlan.features.map(f => (
                                 <View key={f} style={styles.featureRow}>
                                     <View style={[styles.featureIcon, { backgroundColor: selectedPlan.color + "20" }]}>
                                         <Ionicons name="checkmark" size={16} color={selectedPlan.color} />
                                     </View>
-                                    <Text style={styles.featureText}>{f}</Text>
+                                    <Text style={[styles.featureText, solMode && sol.featureText]}>{f}</Text>
                                 </View>
                             ))}
                             {selectedPlan.disabled.map(f => (
@@ -299,7 +301,7 @@ export function PaywallModal({ visible, onClose, customerInfo }: Props) {
                                     <View style={[styles.featureIcon, { backgroundColor: "#f5f5f5" }]}>
                                         <Ionicons name="close" size={16} color="#ccc" />
                                     </View>
-                                    <Text style={[styles.featureText, { color: "#999" }]}>{f}</Text>
+                                    <Text style={[styles.featureText, { color: "#999" }, solMode && sol.featureText]}>{f}</Text>
                                 </View>
                             ))}
                         </View>
@@ -340,10 +342,10 @@ export function PaywallModal({ visible, onClose, customerInfo }: Props) {
                                     try { await Purchases.restorePurchases(); } catch { }
                                 }}
                             >
-                                <Text style={styles.restoreText}>Restaurar compra</Text>
+                                <Text style={[styles.restoreText, solMode && sol.restoreText]}>Restaurar compra</Text>
                             </TouchableOpacity>
 
-                            <Text style={styles.legal}>
+                            <Text style={[styles.legal, solMode && sol.legal]}>
                                 🔒 Pagamento seguro via Google Play{"\n"}
                                 Assinatura anual renovada automaticamente.{"\n"}
                                 Cancele a qualquer momento.
@@ -360,9 +362,9 @@ export function PaywallModal({ visible, onClose, customerInfo }: Props) {
                                 <Text style={styles.ctaText}>Cancelar assinatura no Google Play</Text>
                             </TouchableOpacity>
                         ) : (
-                            <TouchableOpacity style={styles.freeBtn} onPress={onClose}>
+                            <TouchableOpacity style={[styles.freeBtn, solMode && sol.freeBtn]} onPress={onClose}>
                                 <Ionicons name="arrow-forward" size={18} color={LABEL} />
-                                <Text style={styles.freeBtnText}>Continuar com o plano Gratuito</Text>
+                                <Text style={[styles.freeBtnText, solMode && sol.freeBtnText]}>Continuar com o plano Gratuito</Text>
                             </TouchableOpacity>
                         )
                     )}
@@ -444,4 +446,16 @@ const styles = StyleSheet.create({
 
     freeBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 16, borderWidth: 1, borderColor: "#e8e8e8", borderRadius: 12 },
     freeBtnText: { fontSize: 16, fontWeight: "600", color: LABEL, marginLeft: 8 },
+});
+
+const sol = StyleSheet.create({
+    container: { backgroundColor: "#000" },
+    planTab: { backgroundColor: "#000", borderColor: "#ff0" },
+    planDetail: { backgroundColor: "#000" },
+    featuresList: { backgroundColor: "#000" },
+    featureText: { color: "#fff" },
+    restoreText: { color: "#ff0" },
+    legal: { color: "#888" },
+    freeBtn: { borderColor: "#ff0" },
+    freeBtnText: { color: "#ff0" },
 });
