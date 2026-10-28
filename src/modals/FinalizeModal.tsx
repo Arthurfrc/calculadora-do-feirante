@@ -129,8 +129,8 @@ export function FinalizeModal({ solMode, visible, onClose, onNovaVenda, products
                             <Text style={[styles.closeButtonText, solMode && sol.closeButtonText]}>Fechar Resumo</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.zeroButton, solMode && sol.zeroButton]} onPress={handleNovaVenda} activeOpacity={0.85}>
-                            <Ionicons name="refresh" size={20} color="#e53935" />
-                            <Text style={[styles.zeroButtonText, solMode && sol.zeroText]}>Nova Venda</Text>
+                            <Ionicons name="checkmark-circle" size={20} color="#e53935" />
+                            <Text style={[styles.zeroButtonText, solMode && sol.zeroText]}>Finalizar Venda</Text>
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>

@@ -413,7 +413,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={[styles.safeArea, solMode && sol.bg]}>
-        <StatusBar barStyle={solMode ? "light-content" : "dark-content"} backgroundColor={solMode ? "#000" : "#fff"} />
+        <StatusBar barStyle={solMode ? "light-content" : "dark-content"} />
 
         <KeyboardAvoidingView
           style={styles.flex}
@@ -538,7 +538,7 @@ export default function App() {
           )}
           {/* ── List ── */}
           <ScrollView
-            ref={scrollViewRef}
+            ref={scrollViewRef as any}
             style={[styles.scrollView, solMode && sol.bg]}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
@@ -556,7 +556,7 @@ export default function App() {
                   return (
                     <View key={product.id} style={[styles.itemRow, isActive && styles.itemRowActive, solMode && sol.itemRow, solMode && isActive && sol.itemRowActive]}>
                       <View style={styles.itemMain}>
-                        <Text style={[styles.itemName, solMode && sol.text]}>{product.name}</Text>
+                        <Text style={[styles.itemName, solMode && { color: "#FFD700"}]}>{product.name}</Text>
                         <View style={styles.itemDetails}>
                           <Text style={[styles.itemDetail, solMode && sol.detail]}>
                             R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}

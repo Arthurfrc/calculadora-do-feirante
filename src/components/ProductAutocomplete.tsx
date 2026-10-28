@@ -86,7 +86,7 @@ export function ProductAutocomplete({
             <View style={styles.inputWrapper}>
                 <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
                 <TextInput
-                    ref={inputRef}
+                    ref={inputRef as any}
                     style={styles.input}
                     value={value}
                     onChangeText={onChangeText}

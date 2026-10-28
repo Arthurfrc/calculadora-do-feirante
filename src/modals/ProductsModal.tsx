@@ -1,7 +1,7 @@
 // src/modals/ProductsModal.tsx
 
 import React, { useState, useEffect } from "react";
-import { Modal, View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Alert } from "react-native";
+import { Modal, View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Alert, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Product, PriceType } from "../types";
 import { parsePriceInput } from "../utils/formatters";
@@ -106,8 +106,9 @@ export function ProductsModal({ solMode, visible, onClose, products, onAddProduc
 
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-            <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} style={[styles.modalSheet, solMode && sol.modalSheet]}>
+            <View style={styles.modalOverlay}>
+                <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+                <View style={[styles.modalSheet, solMode && sol.modalSheet]}>
                     <View style={[styles.modalHandle, solMode && sol.modalHandle]} />
 
                     {isEditing ? (
@@ -194,44 +195,46 @@ export function ProductsModal({ solMode, visible, onClose, products, onAddProduc
                                 <Text style={styles.addButtonText}>Novo Produto</Text>
                             </TouchableOpacity>
 
-                            <ScrollView style={styles.productsList}>
-                                {products.length === 0 ? (
-                                    <Text style={[styles.emptyText, solMode && sol.emptyText]}>Nenhum produto cadastrado.</Text>
-                                ) : (
-                                    products.map((product) => (
-                                        <View key={product.id} style={[styles.productRow, solMode && sol.productRow]}>
-                                            <View style={styles.productInfo}>
-                                                <Text style={[styles.productName, solMode && sol.productName]}>{product.name}</Text>
-                                                <Text style={[styles.productPrice, solMode && sol.productPrice]}>
-                                                    R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
-                                                </Text>
+                            <View style={styles.productsListContainer}>
+                                <ScrollView style={styles.productsList} contentContainerStyle={styles.productsListContent} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                                    {products.length === 0 ? (
+                                        <Text style={[styles.emptyText, solMode && sol.emptyText]}>Nenhum produto cadastrado.</Text>
+                                    ) : (
+                                        products.map((product) => (
+                                            <View key={product.id} style={[styles.productRow, solMode && sol.productRow]}>
+                                                <View style={styles.productInfo}>
+                                                    <Text style={[styles.productName, solMode && sol.productName]}>{product.name}</Text>
+                                                    <Text style={[styles.productPrice, solMode && sol.productPrice]}>
+                                                        R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.productActions}>
+                                                    <TouchableOpacity
+                                                        style={styles.actionButton}
+                                                        onPress={() => handleEdit(product)}
+                                                    >
+                                                        <Ionicons name="create" size={20} color="#2196f3" />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity
+                                                        style={styles.actionButton}
+                                                        onPress={() => handleDelete(product)}
+                                                    >
+                                                        <Ionicons name="trash" size={20} color="#e53935" />
+                                                    </TouchableOpacity>
+                                                </View>
                                             </View>
-                                            <View style={styles.productActions}>
-                                                <TouchableOpacity
-                                                    style={styles.actionButton}
-                                                    onPress={() => handleEdit(product)}
-                                                >
-                                                    <Ionicons name="create" size={20} color="#2196f3" />
-                                                </TouchableOpacity>
-                                                <TouchableOpacity
-                                                    style={styles.actionButton}
-                                                    onPress={() => handleDelete(product)}
-                                                >
-                                                    <Ionicons name="trash" size={20} color="#e53935" />
-                                                </TouchableOpacity>
-                                            </View>
-                                        </View>
-                                    ))
-                                )}
-                            </ScrollView>
+                                        ))
+                                    )}
+                                </ScrollView>
+                            </View>
                         </>
                     )}
 
                     <TouchableOpacity style={[styles.modalCloseButton, solMode && sol.modalCloseButton]} onPress={onClose}>
                         <Text style={[styles.modalCloseText, solMode && sol.modalCloseText]}>Fechar</Text>
                     </TouchableOpacity>
-                </TouchableOpacity>
-            </TouchableOpacity>
+                </View>
+            </View>
             <PriceInputModal
                 visible={showPriceModal}
                 value={price}
@@ -247,7 +250,7 @@ const LABEL_COLOR = "#888";
 
 const styles = StyleSheet.create({
     modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" },
-    modalSheet: { backgroundColor: "#fff", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 36, maxHeight: "90%" },
+    modalSheet: { backgroundColor: "#fff", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 36, maxHeight: "85%" },
     modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#ddd", alignSelf: "center", marginBottom: 16 },
     modalTitle: { fontSize: 18, fontWeight: "700", color: "#1a1a1a", marginBottom: 16 },
     backButton: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
@@ -266,7 +269,9 @@ const styles = StyleSheet.create({
     saveButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
     addButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#2196f3", borderRadius: 10, paddingVertical: 14, gap: 8, marginBottom: 16 },
     addButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
-    productsList: { maxHeight: 400 },
+    productsListContainer: { flexShrink: 1, marginTop: 8, minHeight: 100 },
+    productsList: { flexGrow: 0 },
+    productsListContent: { paddingBottom: 8 },
     emptyText: { textAlign: "center", color: LABEL_COLOR, marginTop: 40, fontSize: 15 },
     productRow: { flexDirection: "row", alignItems: "center", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#f5f5f5" },
     productInfo: { flex: 1 },
