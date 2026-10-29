@@ -27,6 +27,7 @@ import { ProductsModal } from "./src/modals/ProductsModal";
 import { FinalizeModal } from "./src/modals/FinalizeModal";
 import { HistoryModal } from "./src/modals/HistoryModal";
 import { useSalesHistory } from "./src/hooks/useSalesHistory";
+import { useTrial } from "./src/hooks/useTrial";
 import { shareViaWhatsApp } from "./src/services/whatsappService";
 import { generateAndSharePDF } from "./src/services/printService";
 // import { usePurchases } from "./src/hooks/usePurchases";
@@ -61,7 +62,9 @@ export default function App() {
   const [splashReady, setSplashReady] = useState(false);
 
   // const { isPremium, customerInfo, loadCustomerInfo } = usePurchases();
-  const isPremium = false; // Temporariamente desativado para desenvolvimento
+  const hasPurchased = false; // Temporariamente desativado para desenvolvimento
+  const { trialActive, daysLeft } = useTrial();
+  const isPremium = hasPurchased || trialActive; // Temporariamente desativado para desenvolvimento
   const customerInfo = null;
   const loadCustomerInfo = () => { };
 
@@ -456,11 +459,13 @@ export default function App() {
                     label: "Histórico", icon: "bar-chart", color: "#D466E7", onPress: () => {
                       setShowMenu(false);
                       // if (isPremium) {
-                        setShowHistoryModal(true);
+                      setShowHistoryModal(true);
                       // } else {
                       //   showDialog({
                       //     title: "Funcionalidade Premium",
-                      //     message: "O histórico de vendas está disponível apenas para assinantes Premium.",
+                      //     message: Object.keys(history).length > 0
+                      //        ? `Você já tem ${Object.keys(history).length} ${Object.keys(history).length === 1 ? "dia" : "dias"} de histórico guardados. Assine o Premium para ver.`
+                      //        : "O histórico de vendas está disponível apenas para assinantes Premium.",
                       //     variant: "premium",
                       //     confirmLabel: "Ver Premium",
                       //     cancelLabel: "Entendido",
@@ -536,6 +541,13 @@ export default function App() {
             <View style={[styles.divider, solMode && sol.divider]} />
           </View>
 
+          {trialActive && !hasPurchased && (
+            <View style={[styles.counterRow, solMode && sol.counterRow]}>
+              <Text style={[styles.counterText, solMode && sol.text]}>
+                {daysLeft === 1 ? "Teste grátis: último dia" : `Teste grátis: faltam ${daysLeft} dias`}
+              </Text>
+            </View>
+          )}
           {!isPremium && (
             <View style={[styles.counterRow, solMode && sol.counterRow]}>
               <View style={styles.counterBarWrap}>
