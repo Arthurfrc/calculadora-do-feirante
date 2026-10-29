@@ -25,6 +25,8 @@ import { ShareModal } from "./src/modals/ShareModal";
 import { PaywallModal } from "./src/modals/PaywallModal";
 import { ProductsModal } from "./src/modals/ProductsModal";
 import { FinalizeModal } from "./src/modals/FinalizeModal";
+import { HistoryModal } from "./src/modals/HistoryModal";
+import { useSalesHistory } from "./src/hooks/useSalesHistory";
 import { shareViaWhatsApp } from "./src/services/whatsappService";
 import { generateAndSharePDF } from "./src/services/printService";
 // import { usePurchases } from "./src/hooks/usePurchases";
@@ -43,6 +45,7 @@ export default function App() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const afterSaveRef = useRef<(() => void) | null>(null);
@@ -63,6 +66,7 @@ export default function App() {
   const loadCustomerInfo = () => { };
 
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { history, recordSale } = useSalesHistory();
 
   // Toast
   const [toastVisible, setToastVisible] = useState(false);
@@ -448,6 +452,23 @@ export default function App() {
                     }
                   },
                   { label: "Produtos", icon: "pricetag", color: "#FF9800", onPress: () => { setShowMenu(false); setShowProductsModal(true) } },
+                  {
+                    label: "Histórico", icon: "bar-chart", color: "#D466E7", onPress: () => {
+                      setShowMenu(false);
+                      // if (isPremium) {
+                        setShowHistoryModal(true);
+                      // } else {
+                      //   showDialog({
+                      //     title: "Funcionalidade Premium",
+                      //     message: "O histórico de vendas está disponível apenas para assinantes Premium.",
+                      //     variant: "premium",
+                      //     confirmLabel: "Ver Premium",
+                      //     cancelLabel: "Entendido",
+                      //     onConfirm: () => setShowPaywallModal(true)
+                      //   });
+                      // }
+                    }
+                  },
                   { label: "Zerar Quantidades", icon: "refresh", color: "#e53935", onPress: () => { handleZeroAll(); setShowMenu(false); } },
                   { label: "Meu ID", icon: "phone-portrait", color: "#888", onPress: handleShowIds },
                   { label: "Premium", icon: "star", color: "#FFC83D", onPress: () => { setShowMenu(false); setShowPaywallModal(true) } },
@@ -556,7 +577,7 @@ export default function App() {
                   return (
                     <View key={product.id} style={[styles.itemRow, isActive && styles.itemRowActive, solMode && sol.itemRow, solMode && isActive && sol.itemRowActive]}>
                       <View style={styles.itemMain}>
-                        <Text style={[styles.itemName, solMode && { color: "#FFD700"}]}>{product.name}</Text>
+                        <Text style={[styles.itemName, solMode && { color: "#FFD700" }]}>{product.name}</Text>
                         <View style={styles.itemDetails}>
                           <Text style={[styles.itemDetail, solMode && sol.detail]}>
                             R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
@@ -699,6 +720,17 @@ export default function App() {
         solMode={solMode}
         onClose={() => setShowFinalizeModal(false)}
         onNovaVenda={() => {
+          recordSale(
+            products
+              .filter(p => (quantities[p.id] ?? 0) > 0)
+              .map(p => ({
+                productId: p.id,
+                name: p.name,
+                priceType: p.priceType,
+                qty: quantities[p.id],
+                revenue: quantities[p.id] * p.price,
+              }))
+          );
           setQuantities({});
           setQuantityInputs({});
         }}
@@ -707,6 +739,13 @@ export default function App() {
         totalValue={totalValue}
         totalWeight={totalWeight}
         totalQty={totalQty}
+      />
+      {/* ════════════ MODAL: HISTÓRICO ════════════ */}
+      <HistoryModal
+        visible={showHistoryModal}
+        solMode={solMode}
+        onClose={() => setShowHistoryModal(false)}
+        history={history}
       />
     </SafeAreaProvider>
   );

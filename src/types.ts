@@ -29,3 +29,18 @@ export interface Conference {
     quantities: Record<string, number>; // productId -> qty
     createdAt: number;
 }
+
+export interface SaleProductTotal {
+    name: string;
+    priceType: PriceType;
+    qty: number;
+    revenue: number;
+}
+
+export interface SalesDay {
+    sales: number;
+    revenue: number;
+    products: Record<string, SaleProductTotal>;
+}
+
+export type SalesHistory = Record<string, SalesDay>;
