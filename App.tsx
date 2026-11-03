@@ -59,6 +59,8 @@ export default function App() {
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [splashReady, setSplashReady] = useState(false);
+  const [lastTap, setLastTap] = useState(0);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
 
   // const { isPremium, customerInfo, loadCustomerInfo } = usePurchases();
   const isPremium = false; // Temporariamente desativado para desenvolvimento
@@ -411,6 +413,16 @@ export default function App() {
     }
   };
 
+  const handleDoubleTapProduct = (product: Product) => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      // Double tap detectado
+      setProductToEdit(product);
+      setShowProductsModal(true);
+    }
+    setLastTap(now);
+  };
+
   if (!splashReady) return null;
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -451,7 +463,7 @@ export default function App() {
                       }
                     }
                   },
-                  { label: "Produtos", icon: "pricetag", color: "#FF9800", onPress: () => { setShowMenu(false); setShowProductsModal(true) } },
+                  { label: "Produtos", icon: "pricetag", color: "#FF9800", onPress: () => { setShowMenu(false); setProductToEdit(null); setShowProductsModal(true) } },
                   {
                     label: "Histórico", icon: "bar-chart", color: "#D466E7", onPress: () => {
                       setShowMenu(false);
@@ -575,42 +587,48 @@ export default function App() {
                   const subtotal = qty * product.price;
                   const isActive = qty > 0;
                   return (
-                    <View key={product.id} style={[styles.itemRow, isActive && styles.itemRowActive, solMode && sol.itemRow, solMode && isActive && sol.itemRowActive]}>
-                      <View style={styles.itemMain}>
-                        <Text style={[styles.itemName, solMode && { color: "#FFD700" }]}>{product.name}</Text>
-                        <View style={styles.itemDetails}>
-                          <Text style={[styles.itemDetail, solMode && sol.detail]}>
-                            R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
-                          </Text>
-                          {isActive && (
-                            <>
-                              <Text style={[styles.itemDetail, styles.itemSubtotal, solMode && sol.yellow]}>
-                                {formatCurrency(subtotal)}
-                              </Text>
-                              {product.priceType === 'kg' && (
-                                <Text style={[styles.itemDetail, solMode && sol.detail]}>
-                                  Peso: {formatWeight(qty)} kg
+                    <TouchableOpacity
+                      key={product.id}
+                      onPress={() => handleDoubleTapProduct(product)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.itemRow, isActive && styles.itemRowActive, solMode && sol.itemRow, solMode && isActive && sol.itemRowActive]}>
+                        <View style={styles.itemMain}>
+                          <Text style={[styles.itemName, solMode && { color: "#FFD700" }]}>{product.name}</Text>
+                          <View style={styles.itemDetails}>
+                            <Text style={[styles.itemDetail, solMode && sol.detail]}>
+                              R$ {product.price.toFixed(2)}/{product.priceType === 'kg' ? 'kg' : 'un'}
+                            </Text>
+                            {isActive && (
+                              <>
+                                <Text style={[styles.itemDetail, styles.itemSubtotal, solMode && sol.yellow]}>
+                                  {formatCurrency(subtotal)}
                                 </Text>
-                              )}
-                            </>
-                          )}
+                                {product.priceType === 'kg' && (
+                                  <Text style={[styles.itemDetail, solMode && sol.detail]}>
+                                    Peso: {formatWeight(qty)} kg
+                                  </Text>
+                                )}
+                              </>
+                            )}
+                          </View>
+                        </View>
+                        <View style={styles.itemActions}>
+                          <TextInput
+                            style={[styles.qtyInputList, solMode && sol.input]}
+                            value={inputText}
+                            onChangeText={(text) => {
+                              const formatted = product.priceType === 'kg' ? formatWeightInput(text) : text;
+                              handleQuantityChange(product.id, formatted);
+                            }}
+                            keyboardType="numeric"
+                            returnKeyType="done"
+                            placeholder="0"
+                            placeholderTextColor="#ccc"
+                          />
                         </View>
                       </View>
-                      <View style={styles.itemActions}>
-                        <TextInput
-                          style={[styles.qtyInputList, solMode && sol.input]}
-                          value={inputText}
-                          onChangeText={(text) => {
-                            const formatted = product.priceType === 'kg' ? formatWeightInput(text) : text;
-                            handleQuantityChange(product.id, formatted);
-                          }}
-                          keyboardType="numeric"
-                          returnKeyType="done"
-                          placeholder="0"
-                          placeholderTextColor="#ccc"
-                        />
-                      </View>
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
               </>
@@ -707,11 +725,15 @@ export default function App() {
       <ProductsModal
         visible={showProductsModal}
         solMode={solMode}
-        onClose={() => setShowProductsModal(false)}
+        onClose={() => {
+          setShowProductsModal(false);
+          setProductToEdit(null);
+        }}
         products={products}
         onAddProduct={addProduct}
         onUpdateProduct={updateProduct}
         onDeleteProduct={deleteProduct}
+        initialProduct={productToEdit}
       />
 
       {/* ════════════ MODAL: FINALIZE ════════════ */}

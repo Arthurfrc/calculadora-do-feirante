@@ -15,9 +15,10 @@ interface Props {
     onAddProduct: (product: Omit<Product, 'id' | 'createdAt'>) => Promise<Product>;
     onUpdateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
     onDeleteProduct: (id: string) => Promise<void>;
+    initialProduct?: Product | null;
 }
 
-export function ProductsModal({ solMode, visible, onClose, products, onAddProduct, onUpdateProduct, onDeleteProduct }: Props) {
+export function ProductsModal({ solMode, visible, onClose, products, onAddProduct, onUpdateProduct, onDeleteProduct, initialProduct }: Props) {
     const [isEditing, setIsEditing] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [name, setName] = useState("");
@@ -34,14 +35,17 @@ export function ProductsModal({ solMode, visible, onClose, products, onAddProduc
             setName("");
             setPrice("");
             setPriceType("kg");
+        } else if (initialProduct) {
+            // Se tiver produto inicial, inicia em modo de edição
+            handleEdit(initialProduct);
         }
-    }, [visible]);
+    }, [visible, initialProduct]);
 
     const handleEdit = (product: Product) => {
         setIsEditing(true);
         setEditingProduct(product);
         setName(product.name);
-        setPrice(product.price.toString().replace(".", ","));
+        setPrice(product.price.toFixed(2).replace(".", ","));
         setPriceType(product.priceType);
     };
 
@@ -109,7 +113,9 @@ export function ProductsModal({ solMode, visible, onClose, products, onAddProduc
             <View style={styles.modalOverlay}>
                 <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
                 <View style={[styles.modalSheet, solMode && sol.modalSheet]}>
-                    <View style={[styles.modalHandle, solMode && sol.modalHandle]} />
+                    <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+                        <View style={[styles.modalHandle, solMode && sol.modalHandle]} />
+                    </TouchableOpacity>
 
                     {isEditing ? (
                         <>
