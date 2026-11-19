@@ -5,21 +5,24 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "expo": "~58.0.21",
+    "expo": "~58.0.25",
     "expo-application": "~58.1.2",
-    "expo-constants": "~58.0.14",
-    "expo-font": "~58.0.11",
-    "expo-linear-gradient": "~58.0.3",
-    "expo-linking": "~58.0.15",
-    "expo-print": "~58.0.8",
-    "expo-sharing": "~58.0.21",
-    "expo-splash-screen": "~58.0.12",
-    "expo-status-bar": "~58.0.4",
+    "expo-build-properties": "~58.0.12",
+    "expo-constants": "~58.0.16",
+    "expo-dev-client": "~58.0.20",
+    "expo-font": "~58.0.12",
+    "expo-linear-gradient": "~58.0.4",
+    "expo-linking": "~58.0.17",
+    "expo-print": "~58.0.9",
+    "expo-sharing": "~58.0.23",
+    "expo-splash-screen": "~58.0.14",
+    "expo-status-bar": "~58.0.5",
     "react": "19.3.0",
-    "react-native": "0.88.0",
+    "react-native": "0.88.1",
+    "react-native-google-mobile-ads": "^17.4.0",
     "react-native-purchases": "^10.11.0",
     "react-native-purchases-ui": "^10.11.0",
-    "react-native-safe-area-context": "~5.10.1"
+    "react-native-safe-area-context": "~5.11.1"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
@@ -28,11 +31,12 @@
   "scripts": {
     "start": "expo start",
     "go": "expo start --go",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "build:apk": "eas build --platform android --profile preview",
-    "build:aab": "eas build --platform android --profile production"
+    "build:aab": "eas build --platform android --profile production",
+    "build:dev": "eas build --platform android --profile development"
   },
   "private": true
 }

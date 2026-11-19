@@ -1,4 +1,4 @@
-//App.tsx
+// App.tsx
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
@@ -9,7 +9,7 @@ import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from 'expo-constants';
 // import Purchases from 'react-native-purchases';
-// import { BannerAd, BannerAdSize, TestIds } from "react-native-google-mobile-ads";
+import mobileAds, { BannerAd, BannerAdSize, TestIds } from "react-native-google-mobile-ads";
 import * as SplashScreen from 'expo-splash-screen';
 // import * as Application from 'expo-application';
 
@@ -29,7 +29,7 @@ import { HistoryModal } from "./src/modals/HistoryModal";
 import { useSalesHistory } from "./src/hooks/useSalesHistory";
 import { shareViaWhatsApp } from "./src/services/whatsappService";
 import { generateAndSharePDF } from "./src/services/printService";
-// import { usePurchases } from "./src/hooks/usePurchases";
+import { usePurchases } from "./src/hooks/usePurchases";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -41,6 +41,7 @@ const MAX_ITENS_PREMIUM = parseInt(process.env.EXPO_PUBLIC_MAX_ITENS_PREMIUM ?? 
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
 export default function App() {
+  useEffect(() => { mobileAds().initialize(); }, []);
   const [solMode, setSolMode] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
@@ -62,10 +63,10 @@ export default function App() {
   const [lastTap, setLastTap] = useState(0);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
 
-  // const { isPremium, customerInfo, loadCustomerInfo } = usePurchases();
-  const isPremium = false; // Temporariamente desativado para desenvolvimento
-  const customerInfo = null;
-  const loadCustomerInfo = () => { };
+  const { isPremium, customerInfo, loadCustomerInfo } = usePurchases();
+  // const isPremium = false; // Temporariamente desativado para desenvolvimento
+  // const customerInfo = null;
+  // const loadCustomerInfo = () => { };
 
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
   const { history, recordSale } = useSalesHistory();
@@ -95,8 +96,6 @@ export default function App() {
   const MAX_SLOTS_FREE = parseInt(process.env.EXPO_PUBLIC_MAX_SLOTS_FREE ?? "20");
   const MAX_SLOTS_PREMIUM = parseInt(process.env.EXPO_PUBLIC_MAX_SLOTS_PREMIUM ?? "999");
   const maxSlots = isPremium ? MAX_SLOTS_PREMIUM : MAX_SLOTS_FREE;
-
-  const MAX_ITENS_FREE = parseInt(process.env.EXPO_PUBLIC_MAX_ITENS_FREE ?? "50");
 
   // ── Toast ─────────────────────────────────────────────────────────────────
 
@@ -351,6 +350,15 @@ export default function App() {
     readSlots().then((s) => { setSlots(s); setShowShareModal(true); });
   }, []);
 
+  const buildConference = (): Conference => ({
+    id: "tmp",
+    name: generateConferenceName(),
+    customTitle: customTitle.trim() || undefined,
+    date: new Date().toISOString(),
+    quantities,
+    createdAt: Date.now(),
+  });
+
   const handleShareWhatsApp = useCallback(async (conference: Conference, phone: string) => {
     try {
       await shareViaWhatsApp(conference, products, phone);
@@ -467,18 +475,18 @@ export default function App() {
                   {
                     label: "Histórico", icon: "bar-chart", color: "#D466E7", onPress: () => {
                       setShowMenu(false);
-                      // if (isPremium) {
+                      if (isPremium) {
                         setShowHistoryModal(true);
-                      // } else {
-                      //   showDialog({
-                      //     title: "Funcionalidade Premium",
-                      //     message: "O histórico de vendas está disponível apenas para assinantes Premium.",
-                      //     variant: "premium",
-                      //     confirmLabel: "Ver Premium",
-                      //     cancelLabel: "Entendido",
-                      //     onConfirm: () => setShowPaywallModal(true)
-                      //   });
-                      // }
+                      } else {
+                        showDialog({
+                          title: "Funcionalidade Premium",
+                          message: "O histórico de vendas está disponível apenas para assinantes Premium.",
+                          variant: "premium",
+                          confirmLabel: "Ver Premium",
+                          cancelLabel: "Entendido",
+                          onConfirm: () => setShowPaywallModal(true)
+                        });
+                      }
                     }
                   },
                   { label: "Zerar Quantidades", icon: "refresh", color: "#e53935", onPress: () => { handleZeroAll(); setShowMenu(false); } },
@@ -650,7 +658,7 @@ export default function App() {
 
         <Toast message={toastMessage} visible={toastVisible} />
         {/* ════════════ BANNER DE RODAPÉ ════════════ */}
-        {/* {!isPremium && (
+        {!isPremium && (
           <View style={styles.bannerContainer}>
             <BannerAd
               unitId={__DEV__ ? TestIds.BANNER : process.env.EXPO_PUBLIC_ID_AD}
@@ -659,7 +667,7 @@ export default function App() {
               onAdFailedToLoad={(error) => console.log("AdMob Error: ", error)}
             />
           </View>
-        )} */}
+        )}
       </SafeAreaView>
 
       {/* ════════════ MODAL: COMPARTILHAR ════════════ */}
@@ -740,6 +748,10 @@ export default function App() {
       <FinalizeModal
         visible={showFinalizeModal}
         solMode={solMode}
+        isPremium={isPremium}
+        onShareWhatsApp={(phone) => handleShareWhatsApp(buildConference(), phone)}
+        onSharePDF={() => handleSharePDF(buildConference())}
+        onRequestPremium={() => setShowPaywallModal(true)}
         onClose={() => setShowFinalizeModal(false)}
         onNovaVenda={() => {
           recordSale(

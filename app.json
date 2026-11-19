@@ -24,7 +24,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.arthurfrc.calculadoradofeirante"
+      "package": "com.arthurfrc.calculadora.feirante"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,7 +33,21 @@
       "expo-font",
       "expo-sharing",
       "expo-splash-screen",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-1296094569685364~5078657156"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "-keep class * extends androidx.room.RoomDatabase { <init>(); }\n-keep class * extends androidx.work.InputMerger { <init>(); }"
+          }
+        }
+      ]
     ]
   }
 }

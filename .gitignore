@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Credenciais Gloogle Cloud
+calculadora-do-feirante-63a0d0f826fc.json

@@ -44,53 +44,39 @@ const FREE_PLAN: Plan = {
     icon: "person-outline",
     gradient: ["#9e9e9e", "#757575"],
     features: [
-        "Registro de pesagens",
-        "Até 20 slots de conferência",
+        "Pesagem, total e troco",
+        "Até 15 produtos cadastrados",
     ],
     disabled: [
-        "Anúncios no app",
+        "Sem anúncios",
+        "Produtos ilimitados",
+        "Histórico de vendas",
         "Compartilhar via WhatsApp",
         "Exportar PDF",
     ],
 };
 
 const createPaidPlans = (packages: PurchasesPackage[]) => {
-    const sortedPackages = [...packages].sort((a, b) => {
-        const aIsPremium = a.product.identifier.includes('premium');
-        const bIsPremium = b.product.identifier.includes('premium');
-        if (aIsPremium && !bIsPremium) return -1;
-        if (!aIsPremium && bIsPremium) return 1;
-        return 0;
-    })
-
-    return sortedPackages.map((pkg, index) => {
-        const isPremium = pkg.product.identifier.includes('premium');
-        const isEnterprise = pkg.product.identifier.includes('enterprise');
-
-        let period = "por ano";
+    return packages.map((pkg) => {
+        let period = "por semestre";
         if (pkg.product.subscriptionPeriod) {
             const subPeriod = pkg.product.subscriptionPeriod;
-            if (subPeriod === 'P1Y') period = "por ano";
+            if (subPeriod === 'P6M') period = "por semestre";
+            else if (subPeriod === 'P1Y') period = "por ano";
             else if (subPeriod === 'P1M') period = "por mês";
             else if (subPeriod === 'P1W') period = "por semana";
         }
         return {
             id: pkg.product.identifier,
-            name: isPremium ? "Pro" : "Empresa",
+            name: "Pro",
             price: pkg.product.priceString,
             period: period,
             productId: pkg.product.identifier,
-            color: isPremium ? BLUE : GOLD,
-            icon: isPremium ? "star" : "business",
-            gradient: isPremium ? ["#509AE2", "#3a7bc8"] : ["#FFC83D", "#ffb300"],
-            features: isPremium
-                ? ["Tudo do Gratuito", "Sem anúncios", "Compartilhar via WhatsApp", "Exportar PDF"]
-                : ["Tudo do Pro", "Logo da empresa no PDF", "Backup automático na nuvem", "Restaurar ao trocar de celular"],
-            disabled: isPremium
-                ? ["Logo da empresa no PDF", "Backup na nuvem"]
-                : [],
-            badge: isPremium ? "Popular" : undefined,
-            locked: isEnterprise,
+            color: BLUE,
+            icon: "star",
+            gradient: ["#509AE2", "#3a7bc8"],
+            features: ["Tudo do Gratuito", "Sem anúncios", "Produtos ilimitados", "Histórico de vendas", "Compartilhar via WhatsApp", "Exportar PDF"],
+            disabled: [] as string[],
         };
     });
 };
@@ -163,9 +149,7 @@ export function PaywallModal({ visible, onClose, customerInfo, solMode = false }
     const activeSubscriptions = customerInfo?.activeSubscriptions ?? [];
 
     const getPlanTier = (planId: string) => {
-        if (planId === 'free') return 0;
-        if (planId.includes('premium')) return 1;
-        return 2;
+        return planId === 'free' ? 0 : 1;
     };
 
     const currentTier = plans.reduce((max, p) => {
@@ -347,7 +331,7 @@ export function PaywallModal({ visible, onClose, customerInfo, solMode = false }
 
                             <Text style={[styles.legal, solMode && sol.legal]}>
                                 🔒 Pagamento seguro via Google Play{"\n"}
-                                Assinatura anual renovada automaticamente.{"\n"}
+                                Assinatura renovada automaticamente.{"\n"}
                                 Cancele a qualquer momento.
                             </Text>
                         </>

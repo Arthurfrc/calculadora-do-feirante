@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Purchases, { CustomerInfo, PurchasesPackage, LOG_LEVEL } from "react-native-purchases";
 
 export function usePurchases() {
+    const ENTITLEMENT = 'calculadora_do_feirante_pro'
     const [isPremium, setIsPremium] = useState(false);
     const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
     const [packages, setPackages] = useState<PurchasesPackage[]>([]);
@@ -16,14 +17,16 @@ export function usePurchases() {
     const initializePurchases = async () => {
         try {
             Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
-            const apiKey = process.env.EXPO_PUBLIC_REVENUE_APP;      // Produção
-            // const apiKey = process.env.EXPO_PUBLIC_REVENUE_APP_TESTING;     // Testes
+            const apiKey = __DEV__
+                ? process.env.EXPO_PUBLIC_REVENUE_APP_TESTING
+                : process.env.EXPO_PUBLIC_REVENUE_APP;
+            if (!apiKey) throw new Error("RevenueCat: chave ausente");
 
             await Purchases.configure({ apiKey }); // ← só uma vez
 
             Purchases.addCustomerInfoUpdateListener((info) => {
                 setCustomerInfo(info);
-                setIsPremium(!!info.entitlements.active['Calculadora Feirante Premium']);
+                setIsPremium(!!info.entitlements.active[ENTITLEMENT]);
             });
 
             await loadCustomerInfo();
@@ -40,7 +43,7 @@ export function usePurchases() {
             const info = await Purchases.getCustomerInfo();
             setCustomerInfo(info);
             // Verifica se o usuário tem o entitlement "premium" ativo
-            setIsPremium(!!info.entitlements.active['Calculadora Feirante Premium']);
+            setIsPremium(!!info.entitlements.active[ENTITLEMENT]);
         } catch (error) {
             console.error('Erro ao carregar customer info:', error);
         }
@@ -61,7 +64,7 @@ export function usePurchases() {
         try {
             const { customerInfo } = await Purchases.purchasePackage(pkg);
             setCustomerInfo(customerInfo);
-            setIsPremium(!!customerInfo.entitlements.active['Calculadora Feirante Premium']);
+            setIsPremium(!!customerInfo.entitlements.active[ENTITLEMENT]);
             return { success: true };
         } catch (error: any) {
             console.error('Erro na compra:', error);
@@ -76,7 +79,7 @@ export function usePurchases() {
         try {
             const info = await Purchases.restorePurchases();
             setCustomerInfo(info);
-            setIsPremium(!!info.entitlements.active['Calculadora Feirante Premium']);
+            setIsPremium(!!info.entitlements.active[ENTITLEMENT]);
             return { success: true };
         } catch (error) {
             console.error('Erro ao restaurar compras:', error);

@@ -8,6 +8,10 @@ import { formatWeight, formatCurrency, formatPriceInput, parsePriceInput } from 
 import { AppDialog, useAppDialog } from "../components/AppDialog";
 
 interface Props {
+    isPremium: boolean;
+    onShareWhatsApp: (phone: string) => void;
+    onSharePDF: () => void;
+    onRequestPremium: () => void;
     visible: boolean;
     onClose: () => void;
     onNovaVenda: () => void;
@@ -19,8 +23,10 @@ interface Props {
     totalQty: number;
 }
 
-export function FinalizeModal({ solMode, visible, onClose, onNovaVenda, products, quantities, totalValue, totalWeight, totalQty }: Props) {
+export function FinalizeModal({ isPremium, onShareWhatsApp, onSharePDF, onRequestPremium, solMode, visible, onClose, onNovaVenda, products, quantities, totalValue, totalWeight, totalQty }: Props) {
     const [amountReceived, setAmountReceived] = useState("");
+    const [shareMode, setShareMode] = useState<null | "menu" | "whatsapp">(null);
+    const [phone, setPhone] = useState("");
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const { config: dialogConfig, show: showDialog, dismiss: dismissDialog } = useAppDialog();
 
@@ -35,6 +41,21 @@ export function FinalizeModal({ solMode, visible, onClose, onNovaVenda, products
         });
     };
 
+    const handleShare = () => {
+        if (!isPremium) {
+            showDialog({
+                title: "Funcionalidade Premium",
+                message: "Compartilhar é exclusivo para assinantes Pro.",
+                variant: "premium",
+                confirmLabel: "Ver Premium",
+                cancelLabel: "Entendido",
+                onConfirm: () => { onClose(); onRequestPremium(); },
+            });
+            return;
+        }
+        setShareMode(m => (m ? null : "menu"));
+    };
+
     useEffect(() => {
         const show = Keyboard.addListener("keyboardDidShow", e => { setKeyboardHeight(e.endCoordinates.height); });
         const hide = Keyboard.addListener("keyboardDidHide", () => { setKeyboardHeight(0); });
@@ -45,6 +66,8 @@ export function FinalizeModal({ solMode, visible, onClose, onNovaVenda, products
     useEffect(() => {
         if (visible) {
             setAmountReceived("");
+            setShareMode(null);
+            setPhone("");
         }
     }, [visible]);
 
@@ -123,6 +146,43 @@ export function FinalizeModal({ solMode, visible, onClose, onNovaVenda, products
                         </View>
                     )}
 
+                    <TouchableOpacity style={[styles.shareButton, solMode && sol.shareButton]} onPress={handleShare} activeOpacity={0.85}>
+                        <Ionicons name="arrow-redo" size={20} color={solMode ? "#ff0" : "#2196f3"} />
+                        <Text style={[styles.shareButtonText, solMode && sol.shareButtonText]}>Compartilhar</Text>
+                    </TouchableOpacity>
+                    {shareMode && (
+                        <View style={styles.shareRow}>
+                            <TouchableOpacity style={[styles.shareButton, solMode && sol.shareButton, { flex: 1 }]} onPress={() => setShareMode("whatsapp")}>
+                                <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+                                <Text style={[styles.shareButtonText, solMode && sol.shareButtonText]}>WhatsApp</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.shareButton, solMode && sol.shareButton, { flex: 1 }]} onPress={onSharePDF}>
+                                <Ionicons name="document-text" size={20} color={solMode ? "#ff0" : "#2196f3"} />
+                                <Text style={[styles.shareButtonText, solMode && sol.shareButtonText]}>PDF</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                    {shareMode === "whatsapp" && (
+                        <View style={styles.shareRow}>
+                            <TextInput
+                                style={[styles.paymentInput, { flex: 1 }, solMode && sol.paymentInput]}
+                                value={phone}
+                                onChangeText={setPhone}
+                                keyboardType="phone-pad"
+                                maxLength={11}
+                                placeholder="DDD + número"
+                                placeholderTextColor="#aaa"
+                            />
+                            <TouchableOpacity
+                                style={[styles.shareButton, solMode && sol.shareButton, !phone.trim() && { opacity: 0.5 }]}
+                                disabled={!phone.trim()}
+                                onPress={() => onShareWhatsApp(phone.trim())}
+                            >
+                                <Text style={[styles.shareButtonText, solMode && sol.shareButtonText]}>Enviar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
                     <View style={styles.buttonsRow}>
                         <TouchableOpacity style={[styles.closeButton, solMode && sol.closeButton]} onPress={onClose} activeOpacity={0.85}>
                             <Ionicons name="close-circle" size={20} color={solMode ? "#000" : "#555"} />
@@ -191,6 +251,9 @@ const styles = StyleSheet.create({
     closeButtonText: { color: "#555", fontSize: 15, fontWeight: "700" },
     zeroButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#ffebee", paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: "#ffcdd2" },
     zeroButtonText: { fontSize: 15, fontWeight: "700", color: "#e53935" },
+    shareButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1.5, borderColor: "#2196f3", borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, marginTop: 12 },
+    shareButtonText: { fontSize: 15, fontWeight: "700", color: "#2196f3" },
+    shareRow: { flexDirection: "row", gap: 10, alignItems: "center" },
 });
 
 // ─── Modo sol (SÓ cores) ───
@@ -218,4 +281,6 @@ const sol = StyleSheet.create({
     closeButtonText: { color: "#000" },
     zeroButton: { backgroundColor: "#000", borderColor: "#e53935" },
     zeroText: { color: "#ff5252" },
+    shareButton: { backgroundColor: "#000", borderColor: "#ff0" },
+    shareButtonText: { color: "#ff0" },
 });
