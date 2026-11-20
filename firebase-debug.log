@@ -1,0 +1,17 @@
+[debug] [2026-11-20T17:06:34.295Z] ----------------------------------------------------------------------
+[debug] [2026-11-20T17:06:34.300Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\artur\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting
+[debug] [2026-11-20T17:06:34.300Z] CLI Version:   15.30.2
+[debug] [2026-11-20T17:06:34.301Z] Platform:      win32
+[debug] [2026-11-20T17:06:34.301Z] Node Version:  v24.13.0
+[debug] [2026-11-20T17:06:34.301Z] Detected Agent: unknown
+[debug] [2026-11-20T17:06:34.301Z] Time:          Fri Nov 20 2026 14:06:34 GMT-0300 (Horário Padrão de Brasília)
+[debug] [2026-11-20T17:06:34.301Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-11-20T17:06:39.984Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-11-20T17:06:39.984Z] > authorizing via signed-in user (arthurfelipercosta@gmail.com)
+[debug] [2026-11-20T17:06:39.985Z] [iam] checking project calculadora-do-feirante-13f1d for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-11-20T17:06:40.007Z] Checked if tokens are valid: true, expires at: 1795197738628
+[debug] [2026-11-20T17:06:40.007Z] Checked if tokens are valid: true, expires at: 1795197738628
+[debug] [2026-11-20T17:06:40.009Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/calculadora-do-feirante-13f1d:testIamPermissions [none]
+[debug] [2026-11-20T17:06:40.009Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/calculadora-do-feirante-13f1d:testIamPermissions  x-goog-user-project=calculadora-do-feirante-13f1d
+[debug] [2026-11-20T17:06:40.010Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/calculadora-do-feirante-13f1d:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
