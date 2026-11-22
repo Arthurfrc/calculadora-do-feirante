@@ -1,538 +1,578 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora do Feirante - Gestão de Pesagem</title>
-    <meta name="description" content="App para feirantes gerenciarem pesagens, vendas e relatórios de forma simples e eficiente.">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora do Feirante — Custos, Preços e Lucros na Feira</title>
+    <meta name="description"
+        content="Descubra quanto custa produzir, quanto cobrar e quanto realmente ganha com cada produto. Simples, rápido e feito para quem trabalha vendendo." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
     <style>
+        :root {
+            --bg-main: #0e1410;
+            --bg-card: #151e18;
+            --bg-card-hover: #1a261e;
+            --pastel-green: #9fd3ac;
+            --pastel-green-soft: rgba(159, 211, 172, 0.14);
+            --pastel-green-border: rgba(159, 211, 172, 0.28);
+            --accent-warm: #f3c677;
+            --text-main: #eef5f0;
+            --text-muted: #9eb3a4;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+
+        html {
+            scroll-behavior: smooth;
         }
-        
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #25D366 0%, #1da851 100%);
-            color: white;
-            padding: 20px;
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* Navbar */
+        .navbar {
             position: sticky;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 50;
+            background: rgba(14, 20, 16, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
         }
-        
-        .header-container {
-            max-width: 1200px;
+
+        .nav-inner {
+            max-width: 1120px;
             margin: 0 auto;
+            padding: 16px 24px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            gap: 20px;
         }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        .nav {
+
+        .brand {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
             display: flex;
-            gap: 30px;
+            align-items: center;
+            gap: 6px;
         }
-        
-        .nav a {
-            color: white;
-            text-decoration: none;
+
+        .brand span {
+            color: var(--pastel-green);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            font-size: 14px;
             font-weight: 500;
-            transition: opacity 0.3s;
+            color: var(--text-muted);
         }
-        
-        .nav a:hover {
-            opacity: 0.8;
+
+        .nav-links a:hover {
+            color: var(--pastel-green);
         }
-        
-        /* Hero Section */
+
+        /* Hero */
         .hero {
-            background: linear-gradient(135deg, #25D366 0%, #1da851 100%);
-            color: white;
-            padding: 80px 20px;
+            padding: 92px 24px 76px;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(159, 211, 172, 0.14), transparent 60%),
+                var(--bg-main);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .hero-inner {
+            max-width: 780px;
+            margin: 0 auto;
             text-align: center;
         }
-        
-        .hero-container {
-            max-width: 800px;
-            margin: 0 auto;
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: var(--pastel-green-soft);
+            border: 1px solid var(--pastel-green-border);
+            color: var(--pastel-green);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
         }
-        
+
         .hero h1 {
-            font-size: 48px;
+            font-size: clamp(34px, 5.5vw, 54px);
+            font-weight: 800;
+            line-height: 1.12;
+            letter-spacing: -0.03em;
             margin-bottom: 20px;
-            font-weight: 700;
         }
-        
+
+        .hero h1 span {
+            color: var(--pastel-green);
+        }
+
         .hero p {
-            font-size: 20px;
-            margin-bottom: 30px;
-            opacity: 0.9;
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 620px;
+            margin: 0 auto 34px;
         }
-        
-        .hero-buttons {
+
+        .hero-actions {
             display: flex;
-            gap: 15px;
             justify-content: center;
+            gap: 14px;
             flex-wrap: wrap;
         }
-        
+
         .btn {
-            padding: 15px 30px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 16px;
-            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
         }
-        
-        .btn-primary {
-            background: white;
-            color: #25D366;
-        }
-        
-        .btn-secondary {
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-        }
-        
+
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        
-        /* Section */
+
+        .btn-primary {
+            background: var(--pastel-green);
+            color: #0d1510;
+        }
+
+        .btn-primary:hover {
+            background: #b2dfc0;
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--pastel-green-border);
+            background: var(--pastel-green-soft);
+        }
+
+        /* Sections */
         .section {
-            padding: 80px 20px;
-            max-width: 1200px;
+            padding: 84px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .container {
+            max-width: 1120px;
             margin: 0 auto;
         }
-        
-        .section-title {
+
+        .section-header {
             text-align: center;
-            margin-bottom: 50px;
+            max-width: 640px;
+            margin: 0 auto 52px;
         }
-        
-        .section-title h2 {
-            font-size: 36px;
-            color: #333;
+
+        .section-tag {
+            display: inline-block;
+            color: var(--pastel-green);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
             margin-bottom: 10px;
         }
-        
-        .section-title p {
-            color: #666;
-            font-size: 18px;
+
+        .section-header h2 {
+            font-size: clamp(26px, 4vw, 38px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
         }
-        
-        /* Features Grid */
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        /* Features */
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 20px;
         }
-        
+
         .feature-card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 26px;
+            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
         }
-        
+
         .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            background: var(--bg-card-hover);
+            border-color: var(--pastel-green-border);
+            transform: translateY(-3px);
         }
-        
+
         .feature-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: var(--pastel-green-soft);
+            border: 1px solid var(--pastel-green-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 18px;
         }
-        
+
         .feature-card h3 {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-        
+
+        .badge-pro {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(243, 198, 119, 0.14);
+            border: 1px solid rgba(243, 198, 119, 0.35);
+            color: var(--accent-warm);
+        }
+
         .feature-card p {
-            color: #666;
-            line-height: 1.6;
+            color: var(--text-muted);
+            font-size: 14.5px;
         }
-        
-        .premium-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #FFC83D 0%, #FF9800 100%);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        
-        /* Plans Section */
+
+        /* Plans */
         .plans-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 40px;
-            max-width: 800px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            max-width: 860px;
             margin: 0 auto;
         }
-        
+
         .plan-card {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            text-align: center;
             position: relative;
-            transition: transform 0.3s;
-        }
-        
-        .plan-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .plan-card.premium {
-            border: 3px solid #25D366;
-            transform: scale(1.05);
-        }
-        
-        .plan-card.premium:hover {
-            transform: scale(1.05) translateY(-5px);
-        }
-        
-        .popular-badge {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #25D366 0%, #1da851 100%);
-            color: white;
-            padding: 8px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            white-space: nowrap;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
         }
-        
+
+        .plan-card.featured {
+            background: linear-gradient(180deg, rgba(159, 211, 172, 0.08), var(--bg-card) 45%);
+            border-color: var(--pastel-green-border);
+        }
+
+        .popular-tag {
+            position: absolute;
+            top: -12px;
+            right: 24px;
+            background: var(--pastel-green);
+            color: #0d1510;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
         .plan-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--pastel-green);
             margin-bottom: 10px;
         }
-        
+
         .plan-price {
-            font-size: 48px;
-            font-weight: bold;
-            color: #25D366;
-            margin: 20px 0;
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
         }
-        
+
+        .plan-price span {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
         .plan-period {
-            color: #666;
-            font-size: 16px;
-            margin-bottom: 30px;
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            margin-bottom: 24px;
         }
-        
-        .plan-features {
+
+        .plan-list {
             list-style: none;
-            padding: 0;
-            margin: 30px 0;
-            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 28px;
+            flex: 1;
         }
-        
-        .plan-features li {
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
+
+        .plan-list li {
+            font-size: 14.5px;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
-        .plan-features li::before {
+
+        .plan-list li::before {
             content: "✓";
-            color: #25D366;
-            font-weight: bold;
-            font-size: 18px;
+            color: var(--pastel-green);
+            font-weight: 800;
         }
-        
-        .plan-features li:last-child {
-            border-bottom: none;
-        }
-        
-        /* CTA Section */
-        .cta-section {
-            background: linear-gradient(135deg, #25D366 0%, #1da851 100%);
-            color: white;
-            padding: 80px 20px;
+
+        .plan-note {
             text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 24px;
         }
-        
-        .cta-section h2 {
-            font-size: 36px;
-            margin-bottom: 20px;
-        }
-        
-        .cta-section p {
-            font-size: 18px;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-        
+
         /* Footer */
-        .footer {
-            background: #333;
-            color: white;
-            padding: 40px 20px;
+        footer {
+            padding: 48px 24px;
             text-align: center;
+            background: #0a0f0c;
         }
-        
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .footer-section h3 {
-            margin-bottom: 15px;
+
+        .footer-brand {
             font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 8px;
         }
-        
-        .footer-section p {
-            color: #ccc;
-            line-height: 1.6;
+
+        .footer-brand span {
+            color: var(--pastel-green);
         }
-        
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 13.5px;
+        }
+
         .footer-links {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .footer-links a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .footer-links a:hover {
-            color: white;
-        }
-        
-        .footer-bottom {
-            border-top: 1px solid #444;
-            padding-top: 20px;
-            margin-top: 20px;
-        }
-        
-        .footer-bottom p {
-            color: #999;
+            justify-content: center;
+            gap: 24px;
+            margin: 18px 0;
             font-size: 14px;
+            color: var(--pastel-green);
         }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                gap: 20px;
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 900px) {
+            .features-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            
-            .nav {
-                flex-wrap: wrap;
-                justify-content: center;
+        }
+
+        @media (max-width: 680px) {
+            .nav-links {
+                gap: 14px;
+                font-size: 13px;
             }
-            
-            .hero h1 {
-                font-size: 36px;
+
+            .features-grid,
+            .plans-grid {
+                grid-template-columns: 1fr;
             }
-            
-            .hero p {
-                font-size: 18px;
-            }
-            
-            .section-title h2 {
-                font-size: 28px;
-            }
-            
-            .plan-card.premium {
-                transform: none;
-            }
-            
-            .plan-card.premium:hover {
-                transform: translateY(-5px);
+
+            .hero {
+                padding: 68px 20px 56px;
             }
         }
     </style>
 </head>
+
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">📊 Calculadora do Feirante</div>
-            <nav class="nav">
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="#" class="brand">Calculadora<span>do Feirante</span></a>
+            <div class="nav-links">
                 <a href="#funcionalidades">Funcionalidades</a>
                 <a href="#planos">Planos</a>
                 <a href="/privacy.html">Privacidade</a>
                 <a href="/terms.html">Termos</a>
-            </nav>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-container">
-            <h1>Gestão de pesagem simples e precisa</h1>
-            <p>Registre pesagens, totalize valores, organize conferências e compartilhe relatórios — tudo no seu celular, sem papel.</p>
-            <div class="hero-buttons">
-                <a href="https://play.google.com/store/apps/details?id=com.arthurfrc.calculadoradafeirante" class="btn btn-primary">📱 Baixar grátis</a>
-                <a href="#funcionalidades" class="btn btn-secondary">Ver funcionalidades</a>
+        <div class="hero-inner">
+            <div class="pill">🧮 Custos, preços e lucro na palma da mão</div>
+            <h1>Descubra quanto custa e <span>quanto você ganha</span></h1>
+            <p>Calcule custos de produção ou compra, defina preços de venda justos e visualize seu lucro real de forma
+                simples e prática — na feira, em casa ou na revenda.</p>
+            <div class="hero-actions">
+                <a href="https://play.google.com/store/apps/details?id=com.arthurfrc.calculadoradafeirante"
+                    target="_blank" rel="noopener" class="btn btn-primary">📱 Baixar grátis</a>
+                <a href="#funcionalidades" class="btn btn-ghost">Ver funcionalidades</a>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="section" id="funcionalidades">
-        <div class="section-title">
-            <h2>Tudo que você precisa na balança</h2>
-            <p>Do registro de pesagem ao relatório final, o Calculadora do Feirante cobre o fluxo completo de conferência.</p>
-        </div>
-        
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">⚖️</div>
-                <h3>Registro de pesagens</h3>
-                <p>Adicione pesos em kg com precisão de 3 casas decimais. Pesagens duplicadas são somadas automaticamente.</p>
+    <section id="funcionalidades" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Funcionalidades</div>
+                <h2>Tudo para precificar e conferir sem dor de cabeça</h2>
+                <p>Chega de fazer contas complicadas ou vender sem saber se está realmente ganhando dinheiro.</p>
             </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Totais em tempo real</h3>
-                <p>Quantidade de itens, peso total e valor total calculados instantaneamente conforme você confere.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">💾</div>
-                <h3>20 slots de conferência</h3>
-                <p>Salve até 20 conferências simultaneamente e alterne entre elas com um toque.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📋</div>
-                <h3>Lista organizada</h3>
-                <p>Itens ordenados por peso, com subtotais por linha e controle de quantidade individual.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📤</div>
-                <h3>Compartilhar via WhatsApp <span class="premium-badge">PREMIUM</span></h3>
-                <p>Envie o relatório completo da conferência diretamente para um contato no WhatsApp.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📄</div>
-                <h3>Exportar PDF <span class="premium-badge">PREMIUM</span></h3>
-                <p>Gere um documento PDF profissional da conferência para compartilhar ou arquivar.</p>
-            </div>
-        </div>
-    </section>
 
-    <!-- Plans Section -->
-    <section class="section" id="planos" style="background: #f8f9fa;">
-        <div class="section-title">
-            <h2>Comece grátis, evolua quando precisar</h2>
-        </div>
-        
-        <div class="plans-grid">
-            <div class="plan-card">
-                <h3 class="plan-name">Gratuito</h3>
-                <div class="plan-price">R$0</div>
-                <p class="plan-period">para sempre</p>
-                <ul class="plan-features">
-                    <li>Registro de pesagens</li>
-                    <li>20 slots de conferência</li>
-                    <li>15 itens por conferência</li>
-                    <li>Cálculo de valor total</li>
-                    <li>Com anúncios</li>
-                </ul>
-                <a href="https://play.google.com/store/apps/details?id=com.arthurfrc.calculadoradafeirante" class="btn btn-primary">Baixar grátis</a>
-            </div>
-            
-            <div class="plan-card premium">
-                <div class="popular-badge">Mais popular</div>
-                <h3 class="plan-name">Premium</h3>
-                <div class="plan-price">R$5,90</div>
-                <p class="plan-period">por semestre</p>
-                <ul class="plan-features">
-                    <li>Tudo do plano Gratuito</li>
-                    <li>Slots ilimitados</li>
-                    <li>Itens ilimitados</li>
-                    <li>Compartilhar via WhatsApp</li>
-                    <li>Exportar relatório em PDF</li>
-                    <li>Histórico de vendas</li>
-                    <li>Sem anúncios</li>
-                </ul>
-                <a href="https://play.google.com/store/apps/details?id=com.arthurfrc.calculadoradafeirante" class="btn btn-primary">Assinar Premium</a>
-            </div>
-        </div>
-        
-        <p style="text-align: center; margin-top: 30px; color: #666; font-size: 14px;">
-            Assinatura gerenciada pela Google Play. Cancele a qualquer momento.
-        </p>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <h2>Pronto para começar?</h2>
-        <p>Baixe o Calculadora do Feirante e simplifique suas conferências hoje mesmo.</p>
-        <a href="https://play.google.com/store/apps/details?id=com.arthurfrc.calculadoradafeirante" class="btn btn-primary">📱 Baixar grátis</a>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-grid">
-                <div class="footer-section">
-                    <h3>📊 Calculadora do Feirante</h3>
-                    <p>Calculadora de conferência de pesagem para Android. Simplifique suas vendas no mercado.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧮</div>
+                    <h3>Calcule seus custos</h3>
+                    <p>Organize os custos dos seus produtos e descubra quanto você gasta para produzir, preparar ou
+                        comprar cada item.</p>
                 </div>
-                
-                <div class="footer-section">
-                    <h3>Links Úteis</h3>
-                    <div class="footer-links">
-                        <a href="/privacy.html">Política de Privacidade</a>
-                        <a href="/terms.html">Termos de Serviço</a>
-                    </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Precifique seus produtos</h3>
+                    <p>Defina preços de venda com base nos seus custos e nos seus objetivos de lucro, evitando vender
+                        por valores que não compensam.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Descubra seu lucro</h3>
+                    <p>Visualize a diferença entre custo e preço de venda para entender melhor o resultado real das suas
+                        vendas.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚖️</div>
+                    <h3>Conferência e pesagens</h3>
+                    <p>Registre pesagens, organize conferências e acompanhe totais de forma rápida no dia a dia de
+                        trabalho.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📤</div>
+                    <h3>Compartilhar via WhatsApp <span class="badge-pro">MODO PRO</span></h3>
+                    <p>Envie relatórios e conferências de forma prática diretamente para contatos ou clientes no
+                        WhatsApp.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>Exportar PDF e histórico <span class="badge-pro">MODO PRO</span></h3>
+                    <p>Gere documentos em PDF, acesse histórico completo, tenha slots e itens ilimitados e navegue sem
+                        anúncios.</p>
                 </div>
             </div>
-            
-            <div class="footer-bottom">
-                <p>© 2026 Calculadora do Feirante. Todos os direitos reservados.</p>
-            </div>
         </div>
+    </section>
+
+    <section id="planos" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Planos</div>
+                <h2>Comece grátis, evolua no Modo PRO</h2>
+                <p>Use no dia a dia com os recursos essenciais ou desbloqueie vantagens extras quando precisar.</p>
+            </div>
+
+            <div class="plans-grid">
+                <div class="plan-card">
+                    <div class="plan-name">Gratuito</div>
+                    <div class="plan-price">R$0</div>
+                    <div class="plan-period">para sempre</div>
+                    <ul class="plan-list">
+                        <li>Cálculo de custos e preços de venda</li>
+                        <li>Visualização de lucro por produto</li>
+                        <li>Até 20 slots de conferência</li>
+                        <li>Até 15 itens por conferência</li>
+                        <li>Com anúncios</li>
+                    </ul>
+                    <a href="https://play.google.com/store/apps/details?id=com.arthurfrc.calculadoradafeirante"
+                        target="_blank" rel="noopener" class="btn btn-ghost">Baixar grátis</a>
+                </div>
+
+                <div class="plan-card featured">
+                    <div class="popular-tag">Modo PRO</div>
+                    <div class="plan-name">Premium / PRO</div>
+                    <div class="plan-price">R$5,90<span>/semestre</span></div>
+                    <div class="plan-period">cobrança semestral na Google Play</div>
+                    <ul class="plan-list">
+                        <li>Tudo do plano Gratuito</li>
+                        <li>Slots e itens ilimitados</li>
+                        <li>Compartilhar via WhatsApp</li>
+                        <li>Exportar relatório em PDF</li>
+                        <li>Histórico de vendas</li>
+                        <li>Sem anúncios</li>
+                    </ul>
+                    <a href="https://play.google.com/store/apps/details?id=com.arthurfrc.calculadoradafeirante"
+                        target="_blank" rel="noopener" class="btn btn-primary">Assinar Modo PRO</a>
+                </div>
+            </div>
+
+            <p class="plan-note">Assinatura gerenciada pela Google Play. Cancele a qualquer momento.</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-brand">Calculadora<span>do Feirante</span></div>
+        <p>Custos, precificação e lucro para feirantes, produtores e pequenos empreendedores</p>
+        <div class="footer-links">
+            <a href="/privacy.html">Política de Privacidade</a>
+            <a href="/terms.html">Termos de Serviço</a>
+        </div>
+        <p>© 2026 Calculadora do Feirante. Todos os direitos reservados.</p>
     </footer>
 </body>
+
 </html>

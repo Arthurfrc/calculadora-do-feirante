@@ -1,84 +1,138 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página não encontrada - Calculadora do Feirante</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Página não encontrada — Calculadora do Feirante</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root {
+            --bg-main: #0e1410;
+            --bg-card: #151e18;
+            --pastel-green: #9fd3ac;
+            --pastel-green-soft: rgba(159, 211, 172, 0.14);
+            --pastel-green-border: rgba(159, 211, 172, 0.28);
+            --text-main: #eef5f0;
+            --text-muted: #9eb3a4;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
             margin: 0;
-            padding: 40px 20px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(159, 211, 172, 0.12), transparent 60%),
+                var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
             text-align: center;
-            background: #f2f2f2;
-            color: #333;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 60px 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+
+        .card {
+            max-width: 540px;
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 22px;
+            padding: 48px 32px;
         }
+
+        .code {
+            display: inline-block;
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            color: var(--pastel-green);
+            margin-bottom: 14px;
+        }
+
         h1 {
-            font-size: 72px;
-            color: #25D366;
+            font-size: 24px;
+            font-weight: 800;
             margin-bottom: 10px;
         }
-        h2 {
-            color: #25D366;
-            margin-bottom: 20px;
-        }
+
         p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 30px;
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 28px;
         }
+
         .btn {
-            background: #25D366;
-            color: white;
-            padding: 12px 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 13px 24px;
+            border-radius: 12px;
+            background: var(--pastel-green);
+            color: #0d1510;
+            font-weight: 700;
+            font-size: 14.5px;
             text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            display: inline-block;
-            transition: background 0.3s;
+            transition: transform 0.2s ease, background 0.2s ease;
         }
+
         .btn:hover {
-            background: #1da851;
+            background: #b2dfc0;
+            transform: translateY(-2px);
         }
+
         .footer {
-            margin-top: 40px;
+            margin-top: 36px;
             padding-top: 20px;
-            border-top: 1px solid #eee;
-            font-size: 14px;
-            color: #999;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 13px;
+            color: var(--text-muted);
         }
-        .footer a {
-            color: #25D366;
+
+        .links {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .links a {
+            color: var(--pastel-green);
             text-decoration: none;
-            margin: 0 10px;
+            font-weight: 600;
         }
-        .footer a:hover {
+
+        .links a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>404</h1>
-        <h2>Página não encontrada</h2>
-        <p>Desculpe, a página que você está procurando não existe ou foi movida.</p>
+    <div class="card">
+        <div class="code">404</div>
+        <h1>Página não encontrada</h1>
+        <p>A página que você tentou acessar não existe ou foi movida.</p>
         <a href="/" class="btn">Voltar para o início</a>
-        
+
         <div class="footer">
-            <p>© 2026 Calculadora do Feirante</p>
-            <div>
-                <a href="/terms">Termos de Serviço</a>
-                <a href="/privacy">Política de Privacidade</a>
+            <div>© 2026 Calculadora do Feirante</div>
+            <div class="links">
+                <a href="/terms.html">Termos de Serviço</a>
+                <a href="/privacy.html">Política de Privacidade</a>
             </div>
         </div>
     </div>
 </body>
+
 </html>

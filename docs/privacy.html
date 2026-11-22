@@ -1,124 +1,191 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Política de Privacidade - Calculadora do Feirante</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Política de Privacidade — Calculadora do Feirante</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
     <style>
+        :root {
+            --bg-main: #0e1410;
+            --bg-card: #151e18;
+            --bg-box: #111813;
+            --pastel-green: #9fd3ac;
+            --pastel-green-soft: rgba(159, 211, 172, 0.14);
+            --pastel-green-border: rgba(159, 211, 172, 0.28);
+            --text-main: #eef5f0;
+            --text-muted: #9eb3a4;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(159, 211, 172, 0.1), transparent 55%),
+                var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.65;
             padding: 40px 20px;
-            background-color: #f9f9f9;
         }
+
         .container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 780px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 22px;
+            padding: 40px 32px;
         }
+
+        .top-pill {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--pastel-green);
+            background: var(--pastel-green-soft);
+            border: 1px solid var(--pastel-green-border);
+            padding: 5px 12px;
+            border-radius: 999px;
+            margin-bottom: 14px;
+        }
+
         h1 {
-            color: #25D366;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
+            font-size: clamp(26px, 4vw, 34px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
         }
+
         .date {
-            text-align: center;
-            color: #666;
+            color: var(--text-muted);
             font-size: 14px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 24px;
+            margin-bottom: 28px;
+            border-bottom: 1px solid var(--border-subtle);
         }
+
         h2 {
-            color: #333;
             font-size: 18px;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #25D366;
+            font-weight: 700;
+            color: var(--pastel-green);
+            margin-top: 28px;
+            margin-bottom: 12px;
         }
+
         p {
-            margin-bottom: 15px;
-            text-align: justify;
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 12px;
         }
+
         .list {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 15px 0;
+            background: var(--bg-box);
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--pastel-green);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 12px 0 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
+
         .list-item {
-            margin: 8px 0;
-            padding-left: 20px;
+            font-size: 14.5px;
+            color: var(--text-main);
+            padding-left: 18px;
             position: relative;
         }
-        .list-item:before {
+
+        .list-item::before {
             content: "•";
-            color: #25D366;
-            font-weight: bold;
+            color: var(--pastel-green);
+            font-weight: 800;
             position: absolute;
             left: 0;
         }
+
         .contact {
-            background: #e8f5e9;
-            border: 1px solid #81c784;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            background: var(--pastel-green-soft);
+            border: 1px solid var(--pastel-green-border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin: 14px 0 20px;
         }
-        .contact strong {
-            color: #2e7d32;
+
+        .contact p {
+            margin: 0;
+            color: var(--text-main);
         }
+
         .footer {
-            margin-top: 40px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            margin-top: 36px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-subtle);
             text-align: center;
-            font-style: italic;
-            color: #666;
-            font-size: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
         }
+
         .back-link {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 22px;
         }
+
         .back-link a {
-            color: #25D366;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--pastel-green);
+            font-weight: 700;
+            font-size: 14px;
             text-decoration: none;
-            font-weight: bold;
         }
+
         .back-link a:hover {
             text-decoration: underline;
         }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 28px 20px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>📋 Política de Privacidade</h1>
-        <p class="date">Atualizada em: 20/11/2026</p>
+        <div class="top-pill">Documento Legal</div>
+        <h1>Política de Privacidade</h1>
+        <p class="date">Atualizada em: 20/11/2026 — Calculadora do Feirante</p>
 
         <h2>1. Informações que Coletamos</h2>
         <p>Coletamos apenas informações necessárias para fornecer nossos serviços:</p>
         <div class="list">
-            <div class="list-item">Dados de pesagens e vendas</div>
+            <div class="list-item">Dados de pesagens, custos, preços e vendas</div>
             <div class="list-item">Produtos cadastrados pelo usuário</div>
-            <div class="list-item">Histórico de conferências (Premium)</div>
+            <div class="list-item">Histórico de conferências (Modo PRO / Premium)</div>
             <div class="list-item">Identificador único do dispositivo</div>
         </div>
 
         <h2>2. Como Usamos Suas Informações</h2>
         <p>Suas informações são usadas exclusivamente para:</p>
         <div class="list">
-            <div class="list-item">Calcular valores e totais de pesagem</div>
+            <div class="list-item">Calcular custos, preços, lucros e totais de pesagem</div>
             <div class="list-item">Salvar e organizar conferências</div>
-            <div class="list-item">Gerar relatórios e PDFs (Premium)</div>
-            <div class="list-item">Compartilhar via WhatsApp (Premium)</div>
+            <div class="list-item">Gerar relatórios e PDFs (Modo PRO / Premium)</div>
+            <div class="list-item">Compartilhar via WhatsApp (Modo PRO / Premium)</div>
         </div>
 
         <h2>3. Armazenamento e Segurança</h2>
@@ -134,30 +201,30 @@
         <p>Não vendemos ou compartilhamos seus dados com terceiros, exceto:</p>
         <div class="list">
             <div class="list-item">Google AdMob (anúncios na versão gratuita)</div>
-            <div class="list-item">RevenueCat (gestão de assinaturas Premium)</div>
+            <div class="list-item">RevenueCat (gestão de assinaturas Premium / Modo PRO)</div>
             <div class="list-item">Quando exigido por lei</div>
         </div>
 
         <h2>5. Seus Direitos</h2>
         <p>Você tem direito a:</p>
         <div class="list">
-            <div class="list-item">Excluir suas conferências salvas</div>
+            <div class="list-item">Excluir suas conferências e produtos salvos</div>
             <div class="list-item">Desinstalar o aplicativo para remover dados locais</div>
-            <div class="list-item">Cancelar assinatura Premium a qualquer momento</div>
+            <div class="list-item">Cancelar assinatura a qualquer momento</div>
         </div>
 
         <h2>6. Anúncios</h2>
         <p>Na versão gratuita, exibimos anúncios via Google AdMob:</p>
         <div class="list">
-            <div class="list-item">Anúncios personalizados conforme política do Google</div>
-            <div class="list-item">Versão Premium não exibe anúncios</div>
+            <div class="list-item">Anúncios conforme políticas do Google</div>
+            <div class="list-item">Modo PRO / Premium não exibe anúncios</div>
             <div class="list-item">Você pode gerenciar preferências nas configurações do dispositivo</div>
         </div>
 
         <h2>7. Contato</h2>
         <p>Para dúvidas sobre privacidade, entre em contato:</p>
         <div class="contact">
-            <p><strong>📧 Email:</strong> arthurfelipercosta@gmail.com</p>
+            <p><strong>Email:</strong> arthurfelipercosta@gmail.com</p>
         </div>
 
         <h2>8. Tempo de Retenção</h2>
@@ -176,4 +243,5 @@
         </div>
     </div>
 </body>
+
 </html>

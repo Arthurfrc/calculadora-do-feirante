@@ -1,140 +1,208 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termos de Serviço - Calculadora do Feirante</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Termos de Serviço — Calculadora do Feirante</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
     <style>
+        :root {
+            --bg-main: #0e1410;
+            --bg-card: #151e18;
+            --bg-box: #111813;
+            --pastel-green: #9fd3ac;
+            --pastel-green-soft: rgba(159, 211, 172, 0.14);
+            --pastel-green-border: rgba(159, 211, 172, 0.28);
+            --text-main: #eef5f0;
+            --text-muted: #9eb3a4;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(159, 211, 172, 0.1), transparent 55%),
+                var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.65;
             padding: 40px 20px;
-            background-color: #f9f9f9;
         }
+
         .container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 780px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 22px;
+            padding: 40px 32px;
         }
+
+        .top-pill {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--pastel-green);
+            background: var(--pastel-green-soft);
+            border: 1px solid var(--pastel-green-border);
+            padding: 5px 12px;
+            border-radius: 999px;
+            margin-bottom: 14px;
+        }
+
         h1 {
-            color: #25D366;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
+            font-size: clamp(26px, 4vw, 34px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
         }
+
         .date {
-            text-align: center;
-            color: #666;
+            color: var(--text-muted);
             font-size: 14px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 24px;
+            margin-bottom: 28px;
+            border-bottom: 1px solid var(--border-subtle);
         }
+
         h2 {
-            color: #333;
             font-size: 18px;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #25D366;
+            font-weight: 700;
+            color: var(--pastel-green);
+            margin-top: 28px;
+            margin-bottom: 12px;
         }
+
         p {
-            margin-bottom: 15px;
-            text-align: justify;
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 12px;
         }
+
         .list {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 15px 0;
+            background: var(--bg-box);
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--pastel-green);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 12px 0 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
+
         .list-item {
-            margin: 8px 0;
-            padding-left: 20px;
+            font-size: 14.5px;
+            color: var(--text-main);
+            padding-left: 18px;
             position: relative;
         }
-        .list-item:before {
+
+        .list-item::before {
             content: "•";
-            color: #25D366;
-            font-weight: bold;
+            color: var(--pastel-green);
+            font-weight: 800;
             position: absolute;
             left: 0;
         }
+
         .contact {
-            background: #e8f5e9;
-            border: 1px solid #81c784;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            background: var(--pastel-green-soft);
+            border: 1px solid var(--pastel-green-border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin: 14px 0 20px;
         }
-        .contact strong {
-            color: #2e7d32;
+
+        .contact p {
+            margin: 0;
+            color: var(--text-main);
         }
+
         .footer {
-            margin-top: 40px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            margin-top: 36px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-subtle);
             text-align: center;
-            font-style: italic;
-            color: #666;
-            font-size: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
         }
+
         .back-link {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 22px;
         }
+
         .back-link a {
-            color: #25D366;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--pastel-green);
+            font-weight: 700;
+            font-size: 14px;
             text-decoration: none;
-            font-weight: bold;
         }
+
         .back-link a:hover {
             text-decoration: underline;
         }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 28px 20px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>📋 Termos de Serviço</h1>
-        <p class="date">Atualizado em: 20/11/2026</p>
+        <div class="top-pill">Documento Legal</div>
+        <h1>Termos de Serviço</h1>
+        <p class="date">Atualizado em: 20/11/2026 — Calculadora do Feirante</p>
 
         <h2>1. Aceitação dos Termos</h2>
         <p>Ao usar o aplicativo Calculadora do Feirante, você concorda com estes termos de serviço.</p>
         <p>Se não concordar, não utilize nosso aplicativo ou serviços.</p>
 
         <h2>2. Descrição do Serviço</h2>
-        <p>O Calculadora do Feirante é um aplicativo de gestão de pesagem e vendas que permite:</p>
+        <p>A Calculadora do Feirante é uma ferramenta de cálculo de custos, precificação, lucro e gestão de pesagens que
+            permite:</p>
         <div class="list">
-            <div class="list-item">Registrar pesagens de produtos em kg</div>
-            <div class="list-item">Calcular valores e totais automaticamente</div>
-            <div class="list-item">Salvar e organizar múltiplas conferências</div>
-            <div class="list-item">Gerenciar catálogo de produtos</div>
-            <div class="list-item">Compartilhar relatórios via WhatsApp (Premium)</div>
-            <div class="list-item">Exportar relatórios em PDF (Premium)</div>
+            <div class="list-item">Calcular custos de produção, preparo ou compra de produtos</div>
+            <div class="list-item">Definir preços de venda e acompanhar margens de lucro</div>
+            <div class="list-item">Registrar pesagens e calcular totais automaticamente</div>
+            <div class="list-item">Salvar e organizar conferências e catálogo de produtos</div>
+            <div class="list-item">Compartilhar relatórios via WhatsApp (Modo PRO / Premium)</div>
+            <div class="list-item">Exportar relatórios em PDF (Modo PRO / Premium)</div>
         </div>
 
         <h2>3. Responsabilidades do Usuário</h2>
         <p>Ao usar nosso serviço, você se compromete a:</p>
         <div class="list">
-            <div class="list-item">Inserir dados corretos de pesagem e preços</div>
+            <div class="list-item">Inserir dados corretos de custos, preços, pesagens e margens</div>
             <div class="list-item">Manter seus produtos atualizados</div>
             <div class="list-item">Usar o aplicativo de forma adequada</div>
-            <div class="list-item">Não tentar manipular cálculos de forma fraudulenta</div>
+            <div class="list-item">Não tentar manipular cálculos ou recursos de forma fraudulenta</div>
         </div>
 
         <h2>4. Planos e Assinaturas</h2>
         <p>Sobre nossos planos:</p>
         <div class="list">
             <div class="list-item">Versão gratuita disponível com recursos limitados</div>
-            <div class="list-item">Versão Premium via assinatura semestral (R$5,90)</div>
+            <div class="list-item">Modo PRO / Premium via assinatura semestral (R$5,90)</div>
             <div class="list-item">Assinaturas gerenciadas pela Google Play Store</div>
             <div class="list-item">Cancelamento possível a qualquer momento</div>
-            <div class="list-item">Recursos Premium desbloqueados instantaneamente</div>
+            <div class="list-item">Recursos desbloqueados conforme plano ativo</div>
         </div>
 
         <h2>5. Limitações da Versão Gratuita</h2>
@@ -142,13 +210,13 @@
         <div class="list">
             <div class="list-item">Até 20 slots de conferência</div>
             <div class="list-item">Até 15 itens por conferência</div>
-            <div class="list-item">Cálculo automático de valores</div>
+            <div class="list-item">Cálculo automático de custos, preços, lucros e valores</div>
             <div class="list-item">Exibição de anúncios</div>
         </div>
-        <p>Para mais recursos, assine o Plano Premium.</p>
+        <p>Para mais recursos, ative o Modo PRO / Plano Premium.</p>
 
-        <h2>6. Recursos Premium</h2>
-        <p>O Plano Premium inclui:</p>
+        <h2>6. Recursos do Modo PRO / Premium</h2>
+        <p>O plano avançado inclui:</p>
         <div class="list">
             <div class="list-item">Slots ilimitados de conferência</div>
             <div class="list-item">Itens ilimitados por conferência</div>
@@ -159,7 +227,7 @@
         </div>
 
         <h2>7. Propriedade Intelectual</h2>
-        <p>Todo conteúdo do aplicativo (logos, textos, código) é propriedade do Calculadora do Feirante.</p>
+        <p>Todo conteúdo do aplicativo (logos, textos, código) é propriedade da Calculadora do Feirante.</p>
         <p>É proibida cópia, reprodução ou uso não autorizado.</p>
 
         <h2>8. Limitação de Responsabilidade</h2>
@@ -183,7 +251,7 @@
         <h2>10. Contato e Suporte</h2>
         <p>Para dúvidas sobre estes termos:</p>
         <div class="contact">
-            <p><strong>📧 Email:</strong> arthurfelipercosta@gmail.com</p>
+            <p><strong>Email:</strong> arthurfelipercosta@gmail.com</p>
         </div>
 
         <div class="footer">
@@ -195,4 +263,5 @@
         </div>
     </div>
 </body>
+
 </html>
