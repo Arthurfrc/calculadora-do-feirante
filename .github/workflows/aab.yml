@@ -14,50 +14,54 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feature/ads
 
-      # 1. Liberar espaço no runner
       - name: Free disk space
         run: |
-          echo "=== Espaço antes da limpeza ==="
-          df -h /
-
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/share/boost
           sudo rm -rf /usr/local/lib/android/sdk/emulator
           sudo rm -rf /usr/local/lib/android/sdk/system-images
-
-          echo "=== Espaço depois da limpeza ==="
           df -h /
 
-      # 2. Configurar Node
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      # 3. Configurar Java
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 4. Instalar dependências
       - name: Install dependencies
         run: npm ci
 
-      # 5. Gerar projeto Android
       - name: Expo prebuild
         run: npx expo prebuild --platform android --clean
         env:
           CI: 1
 
-      # 6. Compilar AAB
+      - name: Setup release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          echo "MYAPP_UPLOAD_STORE_FILE=upload-keystore.jks" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_KEY_ALIAS=$KEY_ALIAS" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_STORE_PASSWORD=$KEYSTORE_PASSWORD" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_KEY_PASSWORD=$KEY_PASSWORD" >> android/gradle.properties
+          node scripts/patch-android-signing.js
+
       - name: Build release AAB
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
-      # 7. Salvar AAB
       - uses: actions/upload-artifact@v4
         with:
           name: calculadora-do-feirante-aab

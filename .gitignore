@@ -42,3 +42,6 @@ yarn-error.*
 
 # Credenciais Gloogle Cloud
 calculadora-do-feirante-63a0d0f826fc.json
+
+# Keystore
+*.jks
