@@ -14,6 +14,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feature/ads
 
       # 1. Liberar espaço no runner
       - name: Free disk space
