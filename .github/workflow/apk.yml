@@ -1,4 +1,4 @@
-name: Android AAB
+name: Android APK
 
 on:
   workflow_dispatch:
@@ -9,13 +9,11 @@ jobs:
     timeout-minutes: 45
 
     concurrency:
-      group: aab-build
+      group: apk-build
       cancel-in-progress: true
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: feature/ads
 
       # 1. Liberar espaço no runner
       - name: Free disk space
@@ -54,14 +52,14 @@ jobs:
         env:
           CI: 1
 
-      # 6. Compilar AAB
-      - name: Build release AAB
+      # 6. Compilar APK
+      - name: Build release APK
         working-directory: android
-        run: ./gradlew bundleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
-      # 7. Salvar AAB
+      # 7. Salvar APK
       - uses: actions/upload-artifact@v4
         with:
-          name: calculadora-do-feirante-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          name: calculadora-do-feirante-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 7
