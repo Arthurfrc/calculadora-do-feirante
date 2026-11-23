@@ -9,7 +9,7 @@ jobs:
     timeout-minutes: 45
 
     concurrency:
-      group: aab-build
+      group: apk-build
       cancel-in-progress: true
 
     steps:
