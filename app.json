@@ -4,7 +4,6 @@
     "slug": "calculadora-do-feirante",
     "version": "1.0.0",
     "orientation": "portrait",
-    "versionCode": 3,
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "extra": {
@@ -17,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 3,
       "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
