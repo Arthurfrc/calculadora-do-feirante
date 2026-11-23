@@ -61,5 +61,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: calculadora-do-feirante-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/feirante.apk
           retention-days: 7
