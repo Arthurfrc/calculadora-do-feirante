@@ -319,7 +319,7 @@ export default function App() {
       const product = products.find(p => p.id === productId);
       if (product) {
         if (product.priceType === 'kg') {
-          newQuantityInputs[productId] = formatWeightInput(qty.toString());
+          newQuantityInputs[productId] = formatWeight(qty);
         } else {
           newQuantityInputs[productId] = qty.toString();
         }

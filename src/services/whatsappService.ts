@@ -22,7 +22,7 @@ export function formatConferenceForWhatsApp(conference: Conference, products: Pr
             const weightText = product.priceType === 'kg'
                 ? `= ${formatWeight(qty)} kg`
                 : '';
-            lines.push(`${product.name} × ${qtyText} ${weightText}`);
+            lines.push(`${product.name}:\n${formatWeight(qty)}kg × ${formatCurrency(product.price)}/kg = ${formatCurrency(qty * product.price)}`);
         });
 
     lines.push('─────────────────');
