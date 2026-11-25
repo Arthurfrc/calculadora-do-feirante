@@ -266,6 +266,7 @@ export default function App() {
       },
       onConfirm: () => {
         setQuantities({});
+        setQuantityInputs({});
         setCustomTitle("");
         setCurrentSlot(null);
       },
